@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # MCP Time server for testing
+  # Simple server with time-related tools
+  mcp-time:
+    image: mcp/time:latest
+    stdin_open: true
+    tty: false
+    ports:
+      - "4000:4000"
+    environment:
+      - DOCKER_CONTAINER=true
+    restart: unless-stopped
+
+  # You can add other MCP servers here for testing
+  #
+  # mcp-sqlite:
+  #   image: mcp/sqlite:latest
+  #   stdin_open: true
+  #   ports:
+  #     - "4001:4001"
+  #   volumes:
+  #     - ./test/fixtures:/data
