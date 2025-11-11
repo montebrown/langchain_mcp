@@ -257,7 +257,7 @@ See [Docker Hub MCP Catalog](https://hub.docker.com/mcp) for more.
 
 ## License
 
-MIT License. See LICENSE for details.
+Apache 2.0 License. See LICENSE for details.
 
 ## Links
 
