@@ -71,12 +71,21 @@ jobs:
                   # Wait for server to be ready (max 30 seconds)
                   echo "Waiting for test server to start..."
                   for i in {1..30}; do
-                    if curl -s -f http://localhost:4000/sse -H "Accept: text/event-stream" --max-time 1 > /dev/null 2>&1; then
-                      echo "Test server is ready!"
+                    # Check if port 4000 is listening
+                    if nc -z localhost 4000 2>/dev/null; then
+                      echo "Test server is ready (port 4000 is listening)!"
+                      # Give it one more second to fully initialize
+                      sleep 1
                       break
                     fi
                     if [ $i -eq 30 ]; then
                       echo "Test server failed to start within 30 seconds"
+                      echo "Checking if process is still running..."
+                      if kill -0 $TEST_SERVER_PID 2>/dev/null; then
+                        echo "Process is running but port not open"
+                      else
+                        echo "Process has died"
+                      fi
                       kill $TEST_SERVER_PID 2>/dev/null || true
                       exit 1
                     fi
