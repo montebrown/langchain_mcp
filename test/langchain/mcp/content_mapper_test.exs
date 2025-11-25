@@ -79,8 +79,6 @@ defmodule LangChain.MCP.ContentMapperTest do
 
       parts = ContentMapper.to_content_parts(mcp_content)
 
-      IO.inspect(parts)
-
       assert length(parts) == 1
       assert hd(parts).content == "Valid"
     end

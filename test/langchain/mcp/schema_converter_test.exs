@@ -1,8 +1,8 @@
 defmodule LangChain.MCP.SchemaConverterTest do
   use ExUnit.Case, async: true
 
-  alias LangChain.MCP.SchemaConverter
   alias LangChain.FunctionParam
+  alias LangChain.MCP.SchemaConverter
 
   describe "to_parameters/1" do
     test "converts simple string parameter" do

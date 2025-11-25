@@ -144,7 +144,7 @@ defmodule LangChain.MCP.ToolExecutor do
   defp convert_result_to_langchain(%{"content" => content}, context) when is_list(content) do
     cond do
       # If single text item, return as string
-      is_single_text?(content) ->
+      single_text?(content) ->
         text = ContentMapper.extract_text(content)
         wrap_result(text, context)
 
@@ -161,8 +161,8 @@ defmodule LangChain.MCP.ToolExecutor do
   end
 
   # Check if content is a single text item
-  defp is_single_text?([%{"type" => "text", "text" => _text}]), do: true
-  defp is_single_text?(_), do: false
+  defp single_text?([%{"type" => "text", "text" => _text}]), do: true
+  defp single_text?(_), do: false
 
   # Wrap result based on context requirements
   defp wrap_result(result, context) do
