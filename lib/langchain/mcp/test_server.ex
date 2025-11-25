@@ -8,7 +8,7 @@ defmodule LangChainMCP.TestServer do
 
   Start the server in your supervision tree or manually:
 
-      {:ok, _pid} = Hermes.Server.Supervisor.start_link(
+      {:ok, _pid} = Anubis.Server.Supervisor.start_link(
         LangChainMCP.TestServer,
         transport: :streamable_http,
         streamable_http: [port: 4000]
@@ -19,7 +19,7 @@ defmodule LangChainMCP.TestServer do
       mix test_server
   """
 
-  use Hermes.Server,
+  use Anubis.Server,
     name: "Test MCP Server",
     version: "1.0.0",
     capabilities: [:tools]

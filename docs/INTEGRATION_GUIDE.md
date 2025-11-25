@@ -23,7 +23,7 @@ defp deps do
   [
     {:langchain, "~> 0.4"},
     {:langchain_mcp, "~> 0.1.0"},
-    {:hermes_mcp, "~> 0.14"}
+    {:anubis_mcp, "~> 0.16.0"}
   ]
 end
 ```
@@ -40,7 +40,7 @@ Create a simple MCP integration:
 ```elixir
 # 1. Define MCP client
 defmodule MyApp.MCP do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26"
@@ -75,7 +75,7 @@ tools = LangChain.MCP.Adapter.to_functions(adapter)
 
 ```elixir
 defmodule MyApp.GitHubMCP do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "MyApp-GitHub",
     version: "1.0.0",
     protocol_version: "2025-03-26",

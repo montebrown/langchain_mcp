@@ -22,7 +22,7 @@ This library (`langchain_mcp`) provides seamless integration between [LangChain 
 
 # 2. Define an MCP client
 defmodule MyApp.GitHubMCP do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26"
@@ -70,9 +70,9 @@ MCP servers expose tools, resources, and prompts that LLMs can use. They can:
 - Provide dynamic tool discovery
 - Support multi-modal content (text, images, audio)
 
-### Hermes Client
+### Anubis Client
 
-[Hermes](https://github.com/the-mikedavis/hermes) is the Elixir MCP client library that handles:
+[Anubis MCP](https://github.com/zoedsoupe/anubis-mcp) is the Elixir MCP client library that handles:
 - Protocol communication (JSON-RPC 2.0)
 - Transport layer (stdio, HTTP, SSE, WebSocket)
 - Request/response lifecycle
@@ -80,10 +80,10 @@ MCP servers expose tools, resources, and prompts that LLMs can use. They can:
 
 ### LangChain MCP Adapter
 
-This library bridges Hermes and LangChain by:
+This library bridges Anubis and LangChain by:
 - Discovering tools from MCP servers
 - Converting JSON Schema to LangChain parameters
-- Executing tools through Hermes
+- Executing tools through Anubis
 - Handling errors and fallbacks
 - Mapping content to LangChain format
 
@@ -106,7 +106,7 @@ This library bridges Hermes and LangChain by:
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
-│              Hermes.Client                               │
+│              Anubis.Client                               │
 │  • list_tools()                                          │
 │  • call_tool(name, args)                                 │
 │  • Protocol handling                                     │
@@ -207,7 +207,7 @@ defp deps do
   [
     {:langchain, "~> 0.4"},
     {:langchain_mcp, "~> 0.1.0"},
-    {:hermes_mcp, "~> 0.14"}
+    {:anubis_mcp, "~> 0.16.0"}
   ]
 end
 ```
@@ -276,7 +276,7 @@ LLMChain.new!(%{llm: llm})
 
 ```elixir
 LangChain.MCP.Adapter.new(
-  client: MyMCP,                    # Required: Hermes client module
+  client: MyMCP,                    # Required: Anubis client module
   fallback_client: BackupMCP,       # Optional: Fallback client
   cache: true,                      # Optional: Cache tool discovery (default: true)
   timeout: 30_000,                  # Optional: Request timeout (default: 30s)
@@ -325,7 +325,7 @@ config = Config.new!(
 # Check server is listening
 curl http://localhost:5000/health
 
-# Check Hermes client configuration
+# Check Anubis client configuration
 {:ok, _} = MyMCP.start_link(
   transport: {:streamable_http, base_url: "http://localhost:5000"}
 )
@@ -363,7 +363,7 @@ See **[REFERENCE.md](REFERENCE.md)** for complete troubleshooting guide.
 
 - **Tool caching** is enabled by default (discovery is expensive)
 - **Timeouts** default to 30 seconds (configurable per tool)
-- **Connection pooling** handled by Hermes transport layer
+- **Connection pooling** handled by Anubis transport layer
 - **Memory usage** scales with number of pending requests
 
 ## Contributing
@@ -377,7 +377,7 @@ This library follows LangChain Elixir conventions:
 ## Resources
 
 - **LangChain Elixir**: https://github.com/brainlid/langchain
-- **Hermes MCP**: https://github.com/the-mikedavis/hermes
+- **Anubis MCP**: https://github.com/zoedsoupe/anubis-mcp
 - **MCP Specification**: https://modelcontextprotocol.io/
 - **MCP Servers**: https://github.com/modelcontextprotocol/servers
 

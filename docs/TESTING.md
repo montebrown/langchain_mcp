@@ -88,7 +88,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
               │
               ▼
     ┌─────────────────────────┐
-    │  Hermes.Transport.      │
+    │  Anubis.Transport.      │
     │  StreamableHTTP.Plug    │
     └─────────┬───────────────┘
               │
@@ -113,7 +113,7 @@ curl -H "Accept: text/event-stream" http://localhost:4000/sse
 
 ### Testing with Mocked Clients
 
-Use `Mimic` to mock Hermes client:
+Use `Mimic` to mock Anubis client:
 
 ```elixir
 defmodule MyApp.AdapterTest do
@@ -121,7 +121,7 @@ defmodule MyApp.AdapterTest do
   use Mimic
 
   alias LangChain.MCP.Adapter
-  alias Hermes.MCP.Response
+  alias Anubis.MCP.Response
 
   setup :verify_on_exit!
 
@@ -269,7 +269,7 @@ defmodule LangChain.MCP.ErrorHandlerTest do
   use ExUnit.Case
 
   alias LangChain.MCP.ErrorHandler
-  alias Hermes.MCP.{Error, Response}
+  alias Anubis.MCP.{Error, Response}
 
   test "classifies protocol errors as retryable" do
     error = %Error{code: -32601, reason: :method_not_found}
@@ -442,7 +442,7 @@ defmodule LangChain.MCP.MCPCase do
       client_module = Module.concat([LangChain.MCP.Test, "Client#{:rand.uniform(10000)}"])
 
       defmodule client_module do
-        use Hermes.Client,
+        use Anubis.Client,
           name: "TestClient",
           version: "1.0.0",
           protocol_version: "2025-03-26"
@@ -620,7 +620,7 @@ end
 
 ```elixir
 defmodule LangChain.MCP.MockFactory do
-  alias Hermes.MCP.{Response, Error}
+  alias Anubis.MCP.{Response, Error}
 
   def build_response(result) do
     %Response{
@@ -713,7 +713,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 
 **Solution:**
 1. Check logs for error messages
-2. Verify Hermes dependencies are installed
+2. Verify Anubis dependencies are installed
 3. Check tool implementations for bugs
 4. Ensure Bandit server can start
 

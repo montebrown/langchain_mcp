@@ -6,7 +6,7 @@ defmodule LangChainMCP.TestServer.Router do
   plug(:dispatch)
 
   forward("/",
-    to: Hermes.Server.Transport.StreamableHTTP.Plug,
+    to: Anubis.Server.Transport.StreamableHTTP.Plug,
     init_opts: [server: LangChainMCP.TestServer]
   )
 end

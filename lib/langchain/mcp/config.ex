@@ -7,7 +7,7 @@ defmodule LangChain.MCP.Config do
 
   ## Fields
 
-    * `:client` - The Hermes.Client module to use for MCP operations (required)
+    * `:client` - The Anubis.Client module to use for MCP operations (required)
     * `:cache_tools` - Whether to cache discovered tools (default: true)
     * `:timeout` - Timeout for tool calls in milliseconds (default: 30_000)
     * `:async` - Whether to mark tools as async (default: false)
@@ -71,7 +71,7 @@ defmodule LangChain.MCP.Config do
 
   ## Options
 
-    * `:client` - Required. The Hermes.Client module
+    * `:client` - Required. The Anubis.Client module
     * `:cache_tools` - Boolean, default true
     * `:timeout` - Positive integer in ms, default 30_000
     * `:async` - Boolean, default false

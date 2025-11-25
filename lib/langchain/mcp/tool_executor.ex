@@ -4,7 +4,7 @@ defmodule LangChain.MCP.ToolExecutor do
 
   This module bridges MCP tool execution with LangChain's function calling system.
   It handles:
-  - Calling MCP tools via Hermes.Client
+  - Calling MCP tools via Anubis.Client
   - Converting results to LangChain format (text, ContentParts, or ToolResult)
   - Error handling with fallback support
   - Timeout and async execution options
@@ -60,7 +60,8 @@ defmodule LangChain.MCP.ToolExecutor do
   @spec execute(Config.t(), String.t(), map(), map()) ::
           {:ok, execution_result()} | {:error, String.t()}
   def execute(%Config{} = config, tool_name, args, context \\ %{})
-      when is_binary(tool_name) and is_map(args) do
+      # when is_binary(tool_name) and is_map(args) do
+      when is_binary(tool_name) do
     merged_context = Map.merge(config.context, context)
 
     # Try primary client
@@ -72,7 +73,14 @@ defmodule LangChain.MCP.ToolExecutor do
         # Check if we should try fallback
         if Config.has_fallback?(config) && should_use_fallback?(config, reason, tool_name, args) do
           Logger.info("Attempting fallback client for tool '#{tool_name}'")
-          execute_on_client(config.fallback_client, tool_name, args, config.timeout, merged_context)
+
+          execute_on_client(
+            config.fallback_client,
+            tool_name,
+            args || %{},
+            config.timeout,
+            merged_context
+          )
         else
           error
         end
@@ -86,7 +94,7 @@ defmodule LangChain.MCP.ToolExecutor do
 
   ## Parameters
 
-    * `client` - Hermes.Client module
+    * `client` - Anubis.Client module
     * `tool_name` - Tool name
     * `args` - Arguments map
     * `timeout` - Timeout in milliseconds (default: 30_000)
@@ -102,7 +110,7 @@ defmodule LangChain.MCP.ToolExecutor do
   def execute_on_client(client, tool_name, args, timeout \\ 30_000, context \\ %{}) do
     opts = build_call_opts(timeout)
 
-    # Call the MCP tool via Hermes.Client
+    # Call the MCP tool via Anubis.Client
     case apply(client, :call_tool, [tool_name, args, opts]) do
       {:ok, response} ->
         handle_response(response, tool_name, context)
@@ -190,7 +198,7 @@ defmodule LangChain.MCP.ToolExecutor do
     })
   end
 
-  # Build call options for Hermes.Client
+  # Build call options for Anubis.Client
   defp build_call_opts(timeout) do
     [timeout: timeout]
   end
@@ -218,7 +226,7 @@ defmodule LangChain.MCP.ToolExecutor do
 
   ## Parameters
 
-    * `client` - Hermes.Client module
+    * `client` - Anubis.Client module
     * `tool_name` - Tool name to validate
 
   ## Returns
@@ -257,7 +265,7 @@ defmodule LangChain.MCP.ToolExecutor do
 
   ## Parameters
 
-    * `client` - Hermes.Client module
+    * `client` - Anubis.Client module
 
   ## Returns
 

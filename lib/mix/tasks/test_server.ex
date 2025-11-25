@@ -35,15 +35,15 @@ defmodule Mix.Tasks.TestServer do
     Mix.Task.run("app.start")
 
     # Ensure required applications are started
-    Application.ensure_all_started(:hermes_mcp)
+    Application.ensure_all_started(:anubis_mcp)
     Application.ensure_all_started(:bandit)
 
-    # Start the Hermes.Server.Registry
-    {:ok, _registry_pid} = Hermes.Server.Registry.child_spec([]) |> start_child()
+    # Start the Anubis.Server.Registry
+    {:ok, _registry_pid} = Anubis.Server.Registry.child_spec([]) |> start_child()
 
     # Start the MCP server with streamable_http transport (transport layer only, no HTTP server)
     {:ok, _mcp_server_pid} =
-      Hermes.Server.Supervisor.start_link(
+      Anubis.Server.Supervisor.start_link(
         LangChainMCP.TestServer,
         transport: {:streamable_http, []}
       )

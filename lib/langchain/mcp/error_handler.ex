@@ -36,7 +36,7 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Parameters
 
-    * `error` - Hermes.MCP.Error struct or any error term
+    * `error` - Anubis.MCP.Error struct or any error term
 
   ## Returns
 
@@ -44,13 +44,13 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Examples
 
-      iex> error = %Hermes.MCP.Error{code: -32600, reason: :invalid_request}
+      iex> error = %Anubis.MCP.Error{code: -32600, reason: :invalid_request}
       iex> ErrorHandler.handle_error(error)
       {:error, "MCP protocol error (invalid_request): Invalid request format"}
   """
   @spec handle_error(term()) :: {:error, String.t()}
   def handle_error(%{__struct__: struct_name, code: code, reason: reason} = error)
-      when struct_name in [Hermes.MCP.Error, Hermes.Client.Error] do
+      when struct_name in [Anubis.MCP.Error, Anubis.Client.Error] do
     message = format_error_message(reason, code, error)
     Logger.warning("MCP error: #{message}")
     {:error, message}
@@ -73,7 +73,7 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Parameters
 
-    * `response` - Hermes.MCP.Response struct with is_error: true
+    * `response` - Anubis.MCP.Response struct with is_error: true
 
   ## Returns
 
@@ -81,7 +81,7 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Examples
 
-      iex> response = %Hermes.MCP.Response{
+      iex> response = %Anubis.MCP.Response{
       ...>   is_error: true,
       ...>   result: %{"isError" => true, "content" => [%{"type" => "text", "text" => "Not found"}]}
       ...> }
@@ -108,7 +108,7 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Parameters
 
-    * `error` - Error term (Hermes.MCP.Error or other)
+    * `error` - Error term (Anubis.MCP.Error or other)
 
   ## Returns
 
@@ -116,17 +116,17 @@ defmodule LangChain.MCP.ErrorHandler do
 
   ## Examples
 
-      iex> error = %Hermes.MCP.Error{reason: :request_timeout}
+      iex> error = %Anubis.MCP.Error{reason: :request_timeout}
       iex> ErrorHandler.should_retry?(error)
       true
 
-      iex> error = %Hermes.MCP.Error{reason: :invalid_params}
+      iex> error = %Anubis.MCP.Error{reason: :invalid_params}
       iex> ErrorHandler.should_retry?(error)
       false
   """
   @spec should_retry?(term()) :: boolean()
   def should_retry?(%{__struct__: struct_name, reason: reason})
-      when struct_name in [Hermes.MCP.Error, Hermes.Client.Error] do
+      when struct_name in [Anubis.MCP.Error, Anubis.Client.Error] do
     case reason do
       # Transient errors - should retry
       :request_timeout -> true
