@@ -1,8 +1,8 @@
 defmodule LangChain.MCP.AdapterIntegrationTest do
   use LangChainMCP.MCPCase
 
-  alias LangChain.MCP.Adapter
   alias LangChain.Function
+  alias LangChain.MCP.Adapter
 
   @moduletag :live_call
 
@@ -100,8 +100,6 @@ defmodule LangChain.MCP.AdapterIntegrationTest do
     test "executes a tool and returns result", %{client: client} do
       adapter = Adapter.new(client: client)
       functions = Adapter.to_functions(adapter)
-
-      IO.inspect(functions, label: "functions")
 
       # Get first available function
       func = hd(functions)
