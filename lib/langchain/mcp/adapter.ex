@@ -18,7 +18,7 @@ defmodule LangChain.MCP.Adapter do
 
       # Define MCP client
       defmodule MyApp.MCPClient do
-        use Hermes.Client,
+        use Anubis.Client,
           name: "MyApp",
           version: "1.0.0",
           protocol_version: "2025-03-26"
@@ -214,7 +214,7 @@ defmodule LangChain.MCP.Adapter do
     tool_name = tool["name"]
 
     execution_fn = fn args, context ->
-      case ToolExecutor.execute(config, tool_name, args, context) do
+      case ToolExecutor.execute(config, tool_name, args || %{}, context) do
         {:ok, result} -> result
         {:error, reason} -> {:error, reason}
       end
@@ -430,14 +430,14 @@ defmodule LangChain.MCP.Adapter do
 
   ## Parameters
 
-    * `client_pid` - The process ID for a Hermes client.
+    * `client_pid` - The process ID for a Anubis client.
     * `timeout` - Maximum time to wait in milliseconds (default: 5000)
 
   ## Returns
 
     * `:ok` - Server is ready
     * `{:error, :initialization_timeout}` - Server didn't initialize within timeout
-    * `{:error, :invalid_client}` - The provided PID is not a valid Hermes client
+    * `{:error, :invalid_client}` - The provided PID is not a valid Anubis client
 
   ## Examples
 
@@ -497,7 +497,7 @@ defmodule LangChain.MCP.Adapter do
           children = Supervisor.which_children(supervisor_pid)
 
           case Enum.find(children, fn {id, _pid, _type, _modules} ->
-                 id == Hermes.Client.Base
+                 id == Anubis.Client.Base
                end) do
             {_id, base_pid, _type, _modules} when is_pid(base_pid) ->
               {:ok, base_pid}

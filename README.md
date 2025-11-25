@@ -30,7 +30,7 @@ end
 
 ```elixir
 defmodule MyApp.GitHubMCP do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26"
@@ -134,7 +134,7 @@ defmodule MyApp.MyAgentTest do
   use ExUnit.Case
 
   setup do
-    # Use Hermes mock transport for testing
+    # Use Anubis mock transport for testing
     {:ok, client} = MyApp.TestMCP.start_link(
       transport: {:mock, responses: %{
         "list_tools" => %{"tools" => [...]},
@@ -244,7 +244,7 @@ See [Docker Hub MCP Catalog](https://hub.docker.com/mcp) for more.
                   │
                   ▼
          ┌────────────────────┐
-         │  Hermes.Client     │
+         │  Anubis.Client     │
          │  (GenServer)       │
          └────────┬───────────┘
                   │
@@ -262,6 +262,6 @@ Apache 2.0 License. See LICENSE for details.
 ## Links
 
 - [LangChain Elixir](https://github.com/brainlid/langchain)
-- [Hermes MCP](https://hexdocs.pm/hermes_mcp)
+- [Anubis MCP](https://hexdocs.pm/anubis_mcp)
 - [Model Context Protocol](https://modelcontextprotocol.io)
 - [MCP Servers Catalog](https://hub.docker.com/mcp)

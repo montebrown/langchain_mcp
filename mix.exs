@@ -39,7 +39,7 @@ defmodule LangChainMCP.MixProject do
     [
       # Core dependencies
       {:langchain, "~> 0.4.0"},
-      {:hermes_mcp, "~> 0.14"},
+      {:anubis_mcp, "~> 0.16.0"},
 
       # HTTP server for test server
       {:plug, "~> 1.15", optional: true},

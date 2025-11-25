@@ -335,7 +335,7 @@ All MCP messages use JSON-RPC 2.0:
   before_fallback: (term(), map() -> any()) | nil
 }
 
-# Hermes.MCP.Response
+# Anubis.MCP.Response
 @type t :: %__MODULE__{
   result: map(),
   id: String.t(),
@@ -343,7 +343,7 @@ All MCP messages use JSON-RPC 2.0:
   method: String.t() | nil
 }
 
-# Hermes.MCP.Error
+# Anubis.MCP.Error
 @type t :: %__MODULE__{
   code: integer(),
   reason: atom(),
@@ -524,7 +524,7 @@ Is it a Response with is_error: true?
     ├─ Yes → Domain error (not retryable)
     │          Return error to user
     │
-    └─ No → Is it a %Hermes.MCP.Error{}?
+    └─ No → Is it a %Anubis.MCP.Error{}?
             │
             ├─ Yes → Check error code
             │          │
@@ -545,7 +545,7 @@ Is it a Response with is_error: true?
 ```elixir
 %Config{
   # Required
-  client: MyApp.MCP,                    # Hermes client module
+  client: MyApp.MCP,                    # Anubis client module
 
   # Optional - Resilience
   fallback_client: MyApp.BackupMCP,     # Fallback client
@@ -567,11 +567,11 @@ Is it a Response with is_error: true?
 }
 ```
 
-### Hermes Client Configuration
+### Anubis Client Configuration
 
 ```elixir
 defmodule MyApp.MCP do
-  use Hermes.Client,
+  use Anubis.Client,
     # Required
     name: "MyApp",
     version: "1.0.0",
@@ -690,7 +690,7 @@ sudo iptables -L
 **Diagnosis:**
 ```elixir
 # Check raw response
-{:ok, response} = Hermes.Client.list_tools(MyApp.MCP)
+{:ok, response} = Anubis.Client.list_tools(MyApp.MCP)
 IO.inspect(response.result)
 ```
 
@@ -742,13 +742,13 @@ IO.inspect(response.result)
 **Diagnosis:**
 ```elixir
 # List tools
-{:ok, response} = Hermes.Client.list_tools(MyApp.MCP)
+{:ok, response} = Anubis.Client.list_tools(MyApp.MCP)
 tools = response.result["tools"]
 tool_names = Enum.map(tools, & &1["name"])
 IO.inspect(tool_names, label: "Available tools")
 
 # Try calling
-{:ok, response} = Hermes.Client.call_tool(MyApp.MCP, "tool_name", %{})
+{:ok, response} = Anubis.Client.call_tool(MyApp.MCP, "tool_name", %{})
 ```
 
 **Solutions:**
@@ -771,7 +771,7 @@ tool = Enum.find(tools, &(&1.name == "problematic_tool"))
 IO.inspect(tool.parameters, label: "Expected parameters")
 
 # Try with explicit types
-{:ok, response} = Hermes.Client.call_tool(
+{:ok, response} = Anubis.Client.call_tool(
   MyApp.MCP,
   "tool_name",
   %{"count" => 5}  # integer, not "5" string
@@ -889,7 +889,7 @@ IO.puts("Domain error should not retry: #{retryable}")
 ### Connection Pooling
 
 **For HTTP Transports:**
-- Hermes uses HTTP client connection pooling automatically
+- Anubis uses HTTP client connection pooling automatically
 - No additional configuration needed
 - Reuses connections for multiple requests
 
@@ -966,7 +966,7 @@ end
 - **MCP Specification:** https://modelcontextprotocol.io/
 - **JSON Schema Spec:** https://json-schema.org/
 - **JSON-RPC 2.0 Spec:** https://www.jsonrpc.org/specification
-- **Hermes Documentation:** https://hexdocs.pm/hermes_mcp/
+- **Anubis Documentation:** https://hexdocs.pm/anubis_mcp/
 - **LangChain Documentation:** https://hexdocs.pm/langchain/
 
 ---

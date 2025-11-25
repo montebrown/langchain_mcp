@@ -11,16 +11,13 @@ Mix.install([
   # {:langchain, path: Path.expand("../../langchain", __DIR__)},
   {:langchain, "~> 0.4.0"},
   {:langchain_mcp, path: Path.expand("..", __DIR__)},
-  # {:hermes_mcp, path: Path.expand("../../hermes-mcp", __DIR__)}
-  # {:hermes_mcp, path: Path.expand("~/src/hermes-mcp", __DIR__)}
-  {:hermes_mcp, path: "~/src/hermes-mcp"},
+  {:anubis_mcp, path: "~/src/anubis-mcp"},
   {:plug, "~> 1.18.1"},
-  # {:hermes_mcp, "~> 0.14"}
 ])
 
 # Define MCP client that connects to a local MCP server
 defmodule Examples.MCPClient do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "Examples",
     version: "1.0.0",
     protocol_version: "2025-03-26"

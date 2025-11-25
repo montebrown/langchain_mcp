@@ -29,22 +29,23 @@ defmodule LangChain.MCP.AdapterWaitTest do
     test "returns timeout when server doesn't respond" do
       # Define a minimal test client
       defmodule TimeoutTestClient do
-        use Hermes.Client,
+        use Anubis.Client,
           name: "TimeoutTestClient",
           version: "1.0.0",
           protocol_version: "2025-03-26"
       end
 
-      # Start client with cat which won't properly respond to MCP handshake
+      # Start client with sleep which won't respond to MCP at all
+      # This avoids the issue where cat echoes messages back causing protocol errors
       {:ok, client_pid} =
         TimeoutTestClient.start_link(
-          transport: {:stdio, command: "cat", args: []},
+          transport: {:stdio, command: "sleep", args: ["infinity"]},
           client_info: %{"name" => "Test", "version" => "1.0.0"},
           capabilities: %{},
           protocol_version: "2025-03-26"
         )
 
-      # Should timeout since cat doesn't respond properly
+      # Should timeout since sleep doesn't respond at all
       result = Adapter.wait_for_server_ready(client_pid, 500)
 
       # Clean up
@@ -59,16 +60,17 @@ defmodule LangChain.MCP.AdapterWaitTest do
     test "respects custom timeout" do
       # Define a minimal test client
       defmodule CustomTimeoutClient do
-        use Hermes.Client,
+        use Anubis.Client,
           name: "CustomTimeoutClient",
           version: "1.0.0",
           protocol_version: "2025-03-26"
       end
 
-      # Start client with cat (won't respond properly)
+      # Start client with sleep (won't respond at all)
+      # This avoids the issue where cat echoes messages back causing protocol errors
       {:ok, client_pid} =
         CustomTimeoutClient.start_link(
-          transport: {:stdio, command: "cat", args: []},
+          transport: {:stdio, command: "sleep", args: ["infinity"]},
           client_info: %{"name" => "Test", "version" => "1.0.0"},
           capabilities: %{},
           protocol_version: "2025-03-26"

@@ -1,6 +1,6 @@
 # LangChain MCP Architecture
 
-Complete architectural overview of the LangChain MCP integration, including Hermes client layer and LangChain adapter implementation.
+Complete architectural overview of the LangChain MCP integration, including Anubis client layer and LangChain adapter implementation.
 
 ## Table of Contents
 
@@ -63,9 +63,9 @@ The LangChain MCP integration consists of three layers:
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Hermes Client Layer                       │
+│                    Anubis Client Layer                       │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  Hermes.Client (DSL-Generated API)                    │  │
+│  │  Anubis.Client (DSL-Generated API)                    │  │
 │  │  • list_tools()                                       │  │
 │  │  • call_tool(name, args)                              │  │
 │  │  • list_resources()                                   │  │
@@ -73,14 +73,14 @@ The LangChain MCP integration consists of three layers:
 │  └──────────────┬───────────────────────────────────────┘  │
 │                 │                                            │
 │  ┌──────────────▼───────────────────────────────────────┐  │
-│  │  Hermes.Client.Base (GenServer)                       │  │
+│  │  Anubis.Client.Base (GenServer)                       │  │
 │  │  • Request lifecycle management                       │  │
 │  │  • State tracking                                     │  │
 │  │  • Timeout handling                                   │  │
 │  └──────────────┬───────────────────────────────────────┘  │
 │                 │                                            │
 │  ┌──────────────▼───────────────────────────────────────┐  │
-│  │  Hermes.MCP.Message                                   │  │
+│  │  Anubis.MCP.Message                                   │  │
 │  │  • JSON-RPC encoding/decoding                         │  │
 │  │  • Protocol compliance                                │  │
 │  └──────────────────────────────────────────────────────┘  │
@@ -200,7 +200,7 @@ to_json_schema(params) :: map()
 **Purpose:** Execute MCP tools and handle fallbacks
 
 **Responsibilities:**
-- Invoke tools via Hermes client
+- Invoke tools via Anubis client
 - Handle fallback on transient errors
 - Convert results to LangChain format
 - Manage execution context
@@ -293,9 +293,9 @@ should_retry?(error) :: boolean()
 %Response{is_error: true, result: %{"isError" => true}}
 ```
 
-### Hermes Client Layer
+### Anubis Client Layer
 
-#### 1. Hermes.Client
+#### 1. Anubis.Client
 
 **Purpose:** DSL macro for generating MCP client
 
@@ -310,7 +310,7 @@ should_retry?(error) :: boolean()
 - `ping/1` - Health check
 - `close/1` - Close connection
 
-#### 2. Hermes.Client.Base (GenServer)
+#### 2. Anubis.Client.Base (GenServer)
 
 **Purpose:** OTP-compliant client implementation
 
@@ -345,7 +345,7 @@ should_retry?(error) :: boolean()
 11. Remove from pending_requests
 ```
 
-#### 3. Hermes.MCP.Message
+#### 3. Anubis.MCP.Message
 
 **Purpose:** JSON-RPC 2.0 protocol handling
 
@@ -392,7 +392,7 @@ Adapter checks cache
     └─ Cache miss
         │
         ▼
-    Hermes.Client.list_tools(client)
+    Anubis.Client.list_tools(client)
         │
         ▼
     GenServer.call(client, {:operation, %{method: "tools/list"}})
@@ -449,7 +449,7 @@ LangChain calls Function.function field (callback)
 ToolExecutor.execute_tool(config, name, args, context)
     │
     ▼
-Primary Client: Hermes.Client.call_tool(client, name, args)
+Primary Client: Anubis.Client.call_tool(client, name, args)
     │
     ▼
 GenServer.call(client, {:operation, %{method: "tools/call"}})
@@ -503,11 +503,11 @@ Response returns: %Response{result: %{"content" => [...], "isError" => false}}
 
 ### Design Patterns Used
 
-#### 1. Macro DSL (Hermes.Client)
+#### 1. Macro DSL (Anubis.Client)
 
 Generates boilerplate GenServer code:
 ```elixir
-use Hermes.Client, name: "MyApp", version: "1.0.0"
+use Anubis.Client, name: "MyApp", version: "1.0.0"
 ```
 
 Generates:
@@ -611,7 +611,7 @@ Errors include full context for debugging:
 
 ## State Management
 
-### Client State (Hermes)
+### Client State (Anubis)
 
 **Lifecycle:**
 ```
@@ -675,7 +675,7 @@ Config.new!(client: MyMCP, timeout: 60_000)
 
 ### 3. Connection Pooling
 
-Handled by Hermes transport layer:
+Handled by Anubis transport layer:
 - STDIO: Single subprocess per client
 - HTTP: Connection reuse via HTTP/1.1 keep-alive or HTTP/2
 - WebSocket: Single persistent connection
@@ -683,7 +683,7 @@ Handled by Hermes transport layer:
 ### 4. Concurrent Requests
 
 ```elixir
-# Hermes handles concurrent requests via GenServer queue
+# Anubis handles concurrent requests via GenServer queue
 # Multiple tools can execute in parallel:
 
 tasks = [
@@ -835,7 +835,7 @@ results = Task.await_many(tasks)
 5. **Connection Pooling**
    - Multiple clients to same server
    - Load balancing
-   - Currently handled by Hermes
+   - Currently handled by Anubis
 
 6. **Dynamic Tool Discovery**
    - Refresh tools during chain execution
@@ -860,7 +860,7 @@ Bandit HTTP Server (port 4000)
 Plug Router
     │
     ▼
-Hermes.Transport.StreamableHTTP.Plug
+Anubis.Transport.StreamableHTTP.Plug
     │
     ▼
 LangChain.MCP.TestServer (MCP Server)
@@ -868,7 +868,7 @@ LangChain.MCP.TestServer (MCP Server)
 
 ### Test Strategy
 
-1. **Unit Tests** - Mock Hermes client, test adapter logic
+1. **Unit Tests** - Mock Anubis client, test adapter logic
 2. **Integration Tests** - Real test server, `@tag :live_call`
 3. **Property Tests** - Schema conversion edge cases
 
@@ -877,7 +877,7 @@ See [TESTING.md](TESTING.md) for details.
 ## References
 
 - **MCP Specification:** https://modelcontextprotocol.io/
-- **Hermes Documentation:** https://hexdocs.pm/hermes_mcp/
+- **Anubis Documentation:** https://hexdocs.pm/anubis_mcp/
 - **LangChain Elixir:** https://hexdocs.pm/langchain/
 - **JSON-RPC 2.0:** https://www.jsonrpc.org/specification
 

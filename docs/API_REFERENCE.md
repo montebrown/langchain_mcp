@@ -1,6 +1,6 @@
 # LangChain MCP API Reference
 
-Complete API documentation for the LangChain MCP integration library and related Hermes client APIs.
+Complete API documentation for the LangChain MCP integration library and related Anubis client APIs.
 
 ## Table of Contents
 
@@ -10,7 +10,7 @@ Complete API documentation for the LangChain MCP integration library and related
 4. [LangChain.MCP.ContentMapper](#langchainmcpcontentmapper)
 5. [LangChain.MCP.ErrorHandler](#langchainmcperrorhandler)
 6. [LangChain.MCP.ToolExecutor](#langchainmcptoolexecutor)
-7. [Hermes.Client API](#hermesclient-api)
+7. [Anubis.Client API](#anubisclient-api)
 8. [Data Structures](#data-structures)
 
 ---
@@ -29,7 +29,7 @@ Creates a new adapter instance with configuration.
 ```
 
 **Options:**
-- `:client` (required) - Hermes client module (e.g., `MyApp.GitHubMCP`)
+- `:client` (required) - Anubis client module (e.g., `MyApp.GitHubMCP`)
 - `:fallback_client` - Optional fallback client module
 - `:cache` - Enable tool caching (default: `true`)
 - `:timeout` - Request timeout in ms (default: `30_000`)
@@ -123,7 +123,7 @@ functions = Adapter.to_functions(adapter, force_refresh: true)
 **Returns:** List of `LangChain.Function` structs
 
 **Side Effects:**
-- May call `Hermes.Client.list_tools/1` if cache miss
+- May call `Anubis.Client.list_tools/1` if cache miss
 - Caches result if `:cache` is enabled
 
 **Errors:**
@@ -464,17 +464,17 @@ when error_type: :protocol | :transport | :domain
 **Examples:**
 ```elixir
 # Protocol error
-error = %Hermes.MCP.Error{code: -32601, reason: :method_not_found}
+error = %Anubis.MCP.Error{code: -32601, reason: :method_not_found}
 {type, retryable, msg} = ErrorHandler.classify_error(error)
 # {:protocol, true, "Protocol error: method_not_found"}
 
 # Transport error
-error = %Hermes.MCP.Error{reason: :send_failure}
+error = %Anubis.MCP.Error{reason: :send_failure}
 {type, retryable, msg} = ErrorHandler.classify_error(error)
 # {:transport, true, "Transport error: send_failure"}
 
 # Domain error
-error = %Hermes.MCP.Response{is_error: true, result: %{"isError" => true}}
+error = %Anubis.MCP.Response{is_error: true, result: %{"isError" => true}}
 {type, retryable, msg} = ErrorHandler.classify_error(error)
 # {:domain, false, "Tool execution failed"}
 ```
@@ -517,7 +517,7 @@ Tool execution with fallback support.
 
 ### execute_tool/4
 
-Execute MCP tool through Hermes client.
+Execute MCP tool through Anubis client.
 
 **Signature:**
 ```elixir
@@ -543,7 +543,7 @@ config = Config.new!(client: MyApp.MCP)
 ```
 
 **Flow:**
-1. Call `Hermes.Client.call_tool(client, tool_name, arguments)`
+1. Call `Anubis.Client.call_tool(client, tool_name, arguments)`
 2. Check response for errors
 3. If transient error and fallback configured, try fallback
 4. Convert successful result to ContentParts
@@ -561,15 +561,15 @@ config = Config.new!(client: MyApp.MCP)
 
 ---
 
-## Hermes.Client API
+## Anubis.Client API
 
-The Hermes client provides the low-level MCP protocol interface.
+The Anubis client provides the low-level MCP protocol interface.
 
 ### Defining a Client
 
 ```elixir
 defmodule MyApp.MCPClient do
-  use Hermes.Client,
+  use Anubis.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26",
@@ -828,10 +828,10 @@ Close client connection.
 }
 ```
 
-### Hermes.MCP.Response
+### Anubis.MCP.Response
 
 ```elixir
-%Hermes.MCP.Response{
+%Anubis.MCP.Response{
   result: map(),
   id: String.t(),
   is_error: boolean(),
@@ -839,10 +839,10 @@ Close client connection.
 }
 ```
 
-### Hermes.MCP.Error
+### Anubis.MCP.Error
 
 ```elixir
-%Hermes.MCP.Error{
+%Anubis.MCP.Error{
   code: integer(),
   reason: atom(),
   message: String.t(),
