@@ -70,8 +70,11 @@ defmodule LangChain.MCP.ToolExecutor do
         {:ok, result}
 
       {:error, reason} = error ->
+        original_error = extract_original_error(reason)
+
         # Check if we should try fallback
-        if Config.has_fallback?(config) && should_use_fallback?(config, reason, tool_name, args) do
+        if Config.has_fallback?(config) &&
+             should_use_fallback?(config, original_error, tool_name, args) do
           Logger.info("Attempting fallback client for tool '#{tool_name}'")
 
           execute_on_client(
@@ -219,6 +222,23 @@ defmodule LangChain.MCP.ToolExecutor do
     end
   end
 
+  # Extract original error struct from processed error string
+  defp extract_original_error(error_message) when is_binary(error_message) do
+    # Parse the message to get back to original Anubis.MCP.Error structure
+    cond do
+      String.contains?(error_message, "request_timeout") ->
+        %Anubis.MCP.Error{code: -1, reason: :request_timeout}
+
+      String.contains?(error_message, "internal_error") ->
+        %Anubis.MCP.Error{code: -1, reason: :internal_error}
+
+      true ->
+        %Anubis.MCP.Error{code: -1, reason: :unknown}
+    end
+  end
+
+  defp extract_original_error(error), do: error
+
   @doc """
   Validates that a tool exists on the MCP server before execution.
 
@@ -246,7 +266,7 @@ defmodule LangChain.MCP.ToolExecutor do
   def validate_tool(client, tool_name) do
     case apply(client, :list_tools, []) do
       {:ok, response} ->
-        tools = response.result["tools"] || []
+        tools = response["result"]["tools"] || []
         tool_names = Enum.map(tools, & &1["name"])
 
         if tool_name in tool_names do
