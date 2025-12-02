@@ -111,12 +111,14 @@ The LangChain MCP integration consists of three layers:
 **Purpose:** Main public API for MCP integration
 
 **Responsibilities:**
+
 - Tool discovery from MCP servers
 - Tool caching management
 - Tool filtering (only/except/custom)
 - Configuration validation
 
 **Key Functions:**
+
 ```elixir
 # Create adapter with configuration
 new(opts) :: {:ok, %Adapter{}} | {:error, term()}
@@ -129,6 +131,7 @@ refresh_tools(adapter) :: {:ok, [map()]} | {:error, term()}
 ```
 
 **State:**
+
 ```elixir
 %Adapter{
   config: %Config{},
@@ -141,12 +144,14 @@ refresh_tools(adapter) :: {:ok, [map()]} | {:error, term()}
 **Purpose:** Configuration validation and storage
 
 **Responsibilities:**
+
 - Validate adapter configuration
 - Store client references
 - Manage fallback settings
 - Handle callback configuration
 
 **Schema:**
+
 ```elixir
 embedded_schema do
   field :client, :any, virtual: true
@@ -166,12 +171,14 @@ end
 **Purpose:** Convert between JSON Schema and LangChain parameters
 
 **Responsibilities:**
+
 - Parse JSON Schema definitions
 - Convert to FunctionParam structs
 - Handle nested objects and arrays
 - Support enums and type constraints
 
 **Key Functions:**
+
 ```elixir
 # Convert JSON Schema to FunctionParam list
 convert_input_schema(schema) :: [%FunctionParam{}]
@@ -181,6 +188,7 @@ to_json_schema(params) :: map()
 ```
 
 **Supported Types:**
+
 - `string` → `:string`
 - `number` → `:number`
 - `integer` → `:integer`
@@ -190,6 +198,7 @@ to_json_schema(params) :: map()
 - `null` → handled as optional
 
 **Constraints:**
+
 - `required` → `required: true`
 - `enum` → `enum: [values]`
 - `minLength`, `maxLength` → preserved in description
@@ -200,12 +209,14 @@ to_json_schema(params) :: map()
 **Purpose:** Execute MCP tools and handle fallbacks
 
 **Responsibilities:**
+
 - Invoke tools via Anubis client
 - Handle fallback on transient errors
 - Convert results to LangChain format
 - Manage execution context
 
 **Key Functions:**
+
 ```elixir
 # Execute tool with fallback support
 execute_tool(config, tool_name, arguments, context \\ %{}) ::
@@ -213,6 +224,7 @@ execute_tool(config, tool_name, arguments, context \\ %{}) ::
 ```
 
 **Execution Flow:**
+
 ```
 1. Validate arguments
 2. Call primary client
@@ -228,12 +240,14 @@ execute_tool(config, tool_name, arguments, context \\ %{}) ::
 **Purpose:** Map MCP content to LangChain ContentParts
 
 **Responsibilities:**
+
 - Convert text content
 - Convert image content (base64)
 - Handle resource references
 - Support multi-modal responses
 
 **Key Functions:**
+
 ```elixir
 # Map MCP content array to ContentParts
 map_content(content_list) :: [%ContentPart{}]
@@ -243,6 +257,7 @@ map_content_item(item) :: %ContentPart{}
 ```
 
 **Content Type Mapping:**
+
 ```elixir
 # Text
 %{"type" => "text", "text" => "..."}
@@ -262,11 +277,13 @@ map_content_item(item) :: %ContentPart{}
 **Purpose:** Classify and handle MCP errors
 
 **Responsibilities:**
+
 - Determine error type (protocol/transport/domain)
 - Decide retry-ability
 - Provide user-friendly messages
 
 **Key Functions:**
+
 ```elixir
 # Classify error and determine if retryable
 classify_error(error) :: {error_type, retryable?, message}
@@ -276,6 +293,7 @@ should_retry?(error) :: boolean()
 ```
 
 **Error Classification:**
+
 ```elixir
 # Protocol errors (retryable)
 %Error{code: -32700} # Parse error
@@ -300,6 +318,7 @@ should_retry?(error) :: boolean()
 **Purpose:** DSL macro for generating MCP client
 
 **Generated API:**
+
 - `start_link/1` - Start client GenServer
 - `list_tools/1` - Discover available tools
 - `call_tool/3` - Execute tool by name
@@ -315,6 +334,7 @@ should_retry?(error) :: boolean()
 **Purpose:** OTP-compliant client implementation
 
 **State Management:**
+
 ```elixir
 %State{
   client_info: %{name, version},
@@ -331,6 +351,7 @@ should_retry?(error) :: boolean()
 ```
 
 **Request Lifecycle:**
+
 ```
 1. Operation received via GenServer.call
 2. Generate unique request ID
@@ -350,6 +371,7 @@ should_retry?(error) :: boolean()
 **Purpose:** JSON-RPC 2.0 protocol handling
 
 **Message Format:**
+
 ```elixir
 # Request
 %{
@@ -506,11 +528,13 @@ Response returns: %Response{result: %{"content" => [...], "isError" => false}}
 #### 1. Macro DSL (Anubis.Client)
 
 Generates boilerplate GenServer code:
+
 ```elixir
 use Anubis.Client, name: "MyApp", version: "1.0.0"
 ```
 
 Generates:
+
 - `child_spec/1` for supervision
 - All client API functions
 - Protocol handling code
@@ -518,6 +542,7 @@ Generates:
 #### 2. Ecto Schema (LangChain.MCP.Config)
 
 Uses Ecto for validation:
+
 ```elixir
 embedded_schema do
   field :client, :any, virtual: true
@@ -535,6 +560,7 @@ end
 #### 3. Fluent Builder (Response Building)
 
 Chainable response construction:
+
 ```elixir
 Response.tool()
 |> Response.text("Result")
@@ -545,6 +571,7 @@ Response.tool()
 #### 4. Strategy Pattern (Transport)
 
 Pluggable transport implementations:
+
 ```elixir
 {:stdio, command: "cmd", args: [...]}
 {:streamable_http, base_url: "http://..."}
@@ -554,6 +581,7 @@ Pluggable transport implementations:
 #### 5. Adapter Pattern (LangChain.MCP.Adapter)
 
 Bridges incompatible interfaces:
+
 - MCP tools → LangChain Functions
 - JSON Schema → FunctionParam
 - MCP content → ContentParts
@@ -598,6 +626,7 @@ end
 ### Error Context
 
 Errors include full context for debugging:
+
 ```elixir
 {:error, %{
   type: :protocol_error,
@@ -614,6 +643,7 @@ Errors include full context for debugging:
 ### Client State (Anubis)
 
 **Lifecycle:**
+
 ```
 1. init/1 - Initialize state, start transport
 2. Connection established - Store server info/capabilities
@@ -624,6 +654,7 @@ Errors include full context for debugging:
 ```
 
 **Memory Management:**
+
 - Pending requests auto-removed on completion
 - Timeout timers prevent leaks
 - Callbacks stored by reference (not copied)
@@ -631,6 +662,7 @@ Errors include full context for debugging:
 ### Adapter State (LangChain MCP)
 
 **Caching Strategy:**
+
 ```elixir
 # First call - discover tools
 adapter = Adapter.new(client: MyMCP, cache: true)
@@ -644,6 +676,7 @@ tools = Adapter.to_functions(adapter)  # No network call
 ```
 
 **Cache Invalidation:**
+
 - Manual via `refresh_tools/1`
 - No TTL (tools rarely change)
 - Per-adapter (not global)
@@ -655,11 +688,13 @@ tools = Adapter.to_functions(adapter)  # No network call
 **Default:** 30 seconds per request
 
 **Configuration:**
+
 ```elixir
 Config.new!(client: MyMCP, timeout: 60_000)
 ```
 
 **Implications:**
+
 - Long timeouts block caller
 - Short timeouts risk false failures
 - Consider tool execution time
@@ -667,6 +702,7 @@ Config.new!(client: MyMCP, timeout: 60_000)
 ### 2. Tool Caching
 
 **Impact:**
+
 - First call: Full network round-trip (~100-500ms)
 - Cached calls: Instant (<1ms)
 - Memory: ~1-10 KB per tool
@@ -676,6 +712,7 @@ Config.new!(client: MyMCP, timeout: 60_000)
 ### 3. Connection Pooling
 
 Handled by Anubis transport layer:
+
 - STDIO: Single subprocess per client
 - HTTP: Connection reuse via HTTP/1.1 keep-alive or HTTP/2
 - WebSocket: Single persistent connection
@@ -696,6 +733,7 @@ results = Task.await_many(tasks)
 ```
 
 **Performance:**
+
 - Requests queue in GenServer mailbox
 - Single client can handle 1000+ req/sec
 - Consider multiple clients for isolation
@@ -707,12 +745,14 @@ results = Task.await_many(tasks)
 **Decision:** Create `langchain_mcp` as separate package
 
 **Rationale:**
+
 - Optional dependency (not all users need MCP)
 - Independent versioning (MCP spec evolving)
 - Clear separation of concerns
 - Easier to test in isolation
 
 **Trade-offs:**
+
 - (+) Smaller core LangChain package
 - (+) Users opt-in to MCP
 - (-) Additional dependency to manage
@@ -723,11 +763,13 @@ results = Task.await_many(tasks)
 **Decision:** Cache tools by default
 
 **Rationale:**
+
 - Tool discovery is expensive (network call)
 - Tools rarely change during runtime
 - Easy to disable if needed
 
 **Trade-offs:**
+
 - (+) Much faster repeated access
 - (+) Reduces server load
 - (-) Stale tools if server changes
@@ -738,11 +780,13 @@ results = Task.await_many(tasks)
 **Decision:** Similar to LLMChain's `with_fallbacks`
 
 **Rationale:**
+
 - Consistent with existing LangChain patterns
 - Users already familiar with concept
 - Production resilience requirement
 
 **Trade-offs:**
+
 - (+) High availability
 - (+) Familiar API
 - (-) More complex configuration
@@ -753,11 +797,13 @@ results = Task.await_many(tasks)
 **Decision:** Three distinct error types with different retry logic
 
 **Rationale:**
+
 - MCP spec defines these categories
 - Not all errors should trigger fallback
 - Fine-grained control for applications
 
 **Trade-offs:**
+
 - (+) Precise retry behavior
 - (+) Better error messages
 - (-) More complex error handling
@@ -768,11 +814,13 @@ results = Task.await_many(tasks)
 **Decision:** Tool execution blocks by default
 
 **Rationale:**
+
 - Matches LangChain function calling behavior
 - Simpler mental model
 - Async available as option
 
 **Trade-offs:**
+
 - (+) Simple, predictable behavior
 - (+) Easier debugging
 - (-) Can't cancel in-flight requests
@@ -783,11 +831,13 @@ results = Task.await_many(tasks)
 **Decision:** Don't include rate limiting in adapter
 
 **Rationale:**
+
 - Rate limits vary by server
 - Application-level concern
 - Can be added via middleware
 
 **Trade-offs:**
+
 - (+) Simpler implementation
 - (+) More flexible
 - (-) Users must implement if needed
@@ -798,11 +848,13 @@ results = Task.await_many(tasks)
 **Decision:** Trust MCP server's schema validation
 
 **Rationale:**
+
 - Server performs validation anyway
 - Avoids duplicate code
 - Faster execution
 
 **Trade-offs:**
+
 - (+) Simpler adapter code
 - (+) No schema drift
 - (-) Later error detection
@@ -813,34 +865,34 @@ results = Task.await_many(tasks)
 ### Considered but Deferred
 
 1. **Telemetry Integration**
-   - Emit events for tool discovery/execution
-   - Match LangChain's telemetry patterns
-   - Useful for monitoring
+    - Emit events for tool discovery/execution
+    - Match LangChain's telemetry patterns
+    - Useful for monitoring
 
 2. **Progress Callbacks**
-   - Map MCP progress notifications
-   - Update LangChain callbacks
-   - Support long-running tools
+    - Map MCP progress notifications
+    - Update LangChain callbacks
+    - Support long-running tools
 
 3. **Resource Support**
-   - MCP has resources in addition to tools
-   - Could be exposed as functions
-   - Different use case than tools
+    - MCP has resources in addition to tools
+    - Could be exposed as functions
+    - Different use case than tools
 
 4. **Prompt Templates**
-   - MCP supports prompt templates
-   - Could integrate with LangChain prompts
-   - Separate feature
+    - MCP supports prompt templates
+    - Could integrate with LangChain prompts
+    - Separate feature
 
 5. **Connection Pooling**
-   - Multiple clients to same server
-   - Load balancing
-   - Currently handled by Anubis
+    - Multiple clients to same server
+    - Load balancing
+    - Currently handled by Anubis
 
 6. **Dynamic Tool Discovery**
-   - Refresh tools during chain execution
-   - React to server changes
-   - More complex lifecycle
+    - Refresh tools during chain execution
+    - React to server changes
+    - More complex lifecycle
 
 ## Testing Architecture
 

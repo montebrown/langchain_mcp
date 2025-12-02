@@ -37,6 +37,7 @@ docker-compose down
 ## Test Server
 
 The test infrastructure uses the `mcp/time` Docker image, which provides:
+
 - `get_current_time` tool - Gets current time in specified timezone
 
 This is a simple, stable reference server perfect for testing.

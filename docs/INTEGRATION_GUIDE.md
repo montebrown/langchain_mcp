@@ -29,6 +29,7 @@ end
 ```
 
 Run:
+
 ```bash
 mix deps.get
 ```
@@ -84,6 +85,7 @@ end
 ```
 
 **Naming Convention:**
+
 - Use descriptive names: `GitHubMCP`, `FileSystemMCP`, `DatabaseMCP`
 - Include context in name: "MyApp-GitHub" vs just "GitHub"
 
@@ -100,6 +102,7 @@ Different transport options for different use cases:
 ```
 
 **Use When:**
+
 - MCP server is a web service
 - Multiple clients need to connect
 - Server runs independently
@@ -116,6 +119,7 @@ Different transport options for different use cases:
 ```
 
 **Use When:**
+
 - MCP server is a CLI tool
 - Need tight coupling with subprocess
 - Server is stateless
@@ -129,6 +133,7 @@ Different transport options for different use cases:
 ```
 
 **Use When:**
+
 - Need bidirectional communication
 - Server sends notifications
 - Long-lived connection preferred
@@ -272,6 +277,7 @@ tools = Adapter.to_functions(adapter)  # Always fetches
 ```
 
 **Recommendations:**
+
 - Enable caching for production (tools rarely change)
 - Disable for development (tools may change frequently)
 - Use `force_refresh` after deploying new server version
@@ -298,6 +304,7 @@ tools = Adapter.to_functions(adapter)  # Always fetches
 ```
 
 **Considerations:**
+
 - Network latency
 - Tool execution time
 - Server processing time
@@ -674,11 +681,13 @@ end
 ### 1. Client Lifecycle Management
 
 **DO:**
+
 - Start MCP clients in supervision tree
 - Use named processes for easy access
 - Handle client crashes gracefully
 
 **DON'T:**
+
 - Start clients in request handlers
 - Start multiple clients to same server
 - Ignore client failures
@@ -700,11 +709,13 @@ end
 ### 2. Tool Discovery
 
 **DO:**
+
 - Enable caching in production
 - Validate required tools on startup
 - Handle missing tools gracefully
 
 **DON'T:**
+
 - Discover tools on every request
 - Assume tools are always available
 - Ignore discovery errors
@@ -730,12 +741,14 @@ end
 ### 3. Error Handling
 
 **DO:**
+
 - Classify errors appropriately
 - Log errors with context
 - Provide fallback behavior
 - Return user-friendly messages
 
 **DON'T:**
+
 - Ignore errors
 - Retry domain errors
 - Expose internal error details to users
@@ -766,12 +779,14 @@ end
 ### 4. Security
 
 **DO:**
+
 - Filter tools based on user permissions
 - Validate tool arguments
 - Sanitize tool outputs
 - Use separate MCP clients for different security contexts
 
 **DON'T:**
+
 - Expose all tools to all users
 - Trust tool outputs blindly
 - Log sensitive information
@@ -801,12 +816,14 @@ end
 ### 5. Testing
 
 **DO:**
+
 - Mock MCP clients in tests
 - Test error paths
 - Use integration tests with test server
 - Test timeout scenarios
 
 **DON'T:**
+
 - Depend on external servers in unit tests
 - Skip error case testing
 - Test only happy paths
@@ -816,12 +833,14 @@ See [TESTING.md](TESTING.md) for detailed testing guide.
 ### 6. Monitoring
 
 **DO:**
+
 - Track tool execution time
 - Monitor fallback usage
 - Log tool failures
 - Alert on repeated failures
 
 **DON'T:**
+
 - Ignore performance degradation
 - Miss fallback events
 - Let errors accumulate silently
@@ -851,6 +870,7 @@ end
 **Symptom:** `{:error, :econnrefused}`
 
 **Solutions:**
+
 1. Verify MCP server is running
 2. Check URL/port configuration
 3. Verify network connectivity
@@ -869,6 +889,7 @@ lsof -i :3000
 **Symptom:** `{:error, :method_not_found}`
 
 **Solutions:**
+
 1. Verify tool name spelling
 2. Check tool is in filter list (if filtering)
 3. Refresh tool cache
@@ -886,6 +907,7 @@ Enum.each(tools, &IO.puts(&1.name))
 **Symptom:** `{:error, :request_timeout}`
 
 **Solutions:**
+
 1. Increase timeout value
 2. Check server performance
 3. Verify network latency
@@ -904,6 +926,7 @@ Enum.each(tools, &IO.puts(&1.name))
 **Symptom:** `{:error, :invalid_params}`
 
 **Solutions:**
+
 1. Check parameter types match schema
 2. Verify required parameters provided
 3. Validate parameter format
@@ -920,6 +943,7 @@ IO.inspect(tool.parameters, label: "Expected parameters")
 **Symptom:** Primary failure but fallback not used
 
 **Solutions:**
+
 1. Verify fallback client configured
 2. Check error is retryable (not domain error)
 3. Ensure fallback client is running
@@ -937,6 +961,7 @@ IO.puts("Type: #{type}, Retryable: #{retryable}")
 **Symptom:** Old tools returned after server update
 
 **Solutions:**
+
 1. Force refresh cache
 2. Restart application
 3. Disable caching during development
