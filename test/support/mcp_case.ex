@@ -53,7 +53,7 @@ defmodule LangChainMCP.MCPCase do
   Starts the MCP test client connected to localhost.
   """
   def start_test_client do
-    base_url = System.get_env("MCP_TEST_URL", "http://localhost:4000")
+    base_url = System.get_env("MCP_TEST_URL", "http://localhost:5000")
 
     start_supervised(
       {LangChainMCP.TestClient,
@@ -74,7 +74,7 @@ defmodule LangChainMCP.MCPCase do
   Checks if MCP test server is available.
   """
   def server_available? do
-    case :gen_tcp.connect(~c"localhost", 4000, [], 1000) do
+    case :gen_tcp.connect(~c"localhost", 5000, [], 1000) do
       {:ok, socket} ->
         :gen_tcp.close(socket)
         true

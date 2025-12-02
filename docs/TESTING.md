@@ -25,11 +25,13 @@ All unit tests use mocks and don't require external services.
 ### Run Integration Tests
 
 **Terminal 1** - Start test server:
+
 ```bash
 mix test_server
 ```
 
 **Terminal 2** - Run integration tests:
+
 ```bash
 mix test --include live_call
 ```
@@ -46,20 +48,21 @@ The library includes a native Elixir MCP test server with three test tools:
 
 ### Starting the Test Server
 
-#### Default (Port 4000)
+#### Default (Port 5000)
 
 ```bash
 mix test_server
 ```
 
 Output:
+
 ```
-🚀 Starting MCP Test Server on http://localhost:4000
+🚀 Starting MCP Test Server on http://localhost:5000
    Tools available: get_current_time, get_timestamp, add_numbers
    Endpoints: /sse (SSE connection), /message (POST messages)
    Press Ctrl+C to stop
 
-Running LangChainMCP.TestServer.Router with Bandit 1.8.0 at 0.0.0.0:4000 (http)
+Running LangChainMCP.TestServer.Router with Bandit 1.8.0 at 0.0.0.0:5000 (http)
 ```
 
 #### Custom Port
@@ -69,6 +72,7 @@ mix test_server --port 5000
 ```
 
 Then set environment variable for tests:
+
 ```bash
 MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 ```
@@ -77,7 +81,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 
 ```
 ┌─────────────────────────────────────┐
-│   Bandit HTTP Server (port 4000)    │
+│   Bandit HTTP Server (port 5000)    │
 │                                     │
 │   ┌─────────────────────────────┐   │
 │   │  Plug Router                │   │
@@ -104,7 +108,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 
 ```bash
 # Check SSE endpoint (will hang - that's normal)
-curl -H "Accept: text/event-stream" http://localhost:4000/sse
+curl -H "Accept: text/event-stream" http://localhost:5000/sse
 
 # Should see Server-Sent Events stream open
 ```
@@ -448,7 +452,7 @@ defmodule LangChain.MCP.MCPCase do
           protocol_version: "2025-03-26"
       end
 
-      test_url = System.get_env("MCP_TEST_URL", "http://localhost:4000")
+      test_url = System.get_env("MCP_TEST_URL", "http://localhost:5000")
 
       {:ok, _pid} = client_module.start_link(
         transport: {:streamable_http, base_url: test_url},
@@ -656,15 +660,17 @@ end
 **Problem:** `{:error, :econnrefused}`
 
 **Solution:**
+
 1. Ensure test server is running: `mix test_server`
 2. Check server is on correct port
-3. Verify with `curl http://localhost:4000/sse`
+3. Verify with `curl http://localhost:5000/sse`
 
 ### Tests Hanging
 
 **Problem:** Tests never complete
 
 **Solution:**
+
 1. Check for deadlocks in GenServer calls
 2. Verify timeout values are reasonable
 3. Use `@tag timeout: 60_000` for slow tests
@@ -675,6 +681,7 @@ end
 **Problem:** Tests pass sometimes, fail other times
 
 **Solution:**
+
 1. Ensure integration tests are `async: false`
 2. Add proper test isolation (unique client names)
 3. Clean up resources in `on_exit` callbacks
@@ -685,6 +692,7 @@ end
 **Problem:** Mimic expects not being called
 
 **Solution:**
+
 1. Add `setup :verify_on_exit!`
 2. Ensure mock is for correct module
 3. Check function arity matches
@@ -695,9 +703,10 @@ end
 **Problem:** Test server won't start
 
 **Solution:**
+
 ```bash
 # Find what's using port 4000
-lsof -i :4000
+lsof -i :5000
 
 # Kill the process
 kill -9 <PID>
@@ -712,6 +721,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 **Problem:** Test server exits unexpectedly
 
 **Solution:**
+
 1. Check logs for error messages
 2. Verify Anubis dependencies are installed
 3. Check tool implementations for bugs
@@ -722,6 +732,7 @@ MCP_TEST_URL=http://localhost:5000 mix test --include live_call
 **Problem:** Test suite takes too long
 
 **Solution:**
+
 1. Run only specific tests: `mix test test/specific_test.exs`
 2. Skip integration tests in development: `mix test --exclude live_call`
 3. Use `async: true` where possible
@@ -801,8 +812,8 @@ jobs:
 
       - uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.15'
-          otp-version: '26'
+          elixir-version: "1.15"
+          otp-version: "26"
 
       - name: Install dependencies
         run: mix deps.get

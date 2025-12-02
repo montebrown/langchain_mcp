@@ -10,7 +10,7 @@ defmodule Mix.Tasks.TestServer do
 
       mix test_server --port 4001
 
-  The server will run on http://localhost:4000 by default and can be used
+  The server will run on http://localhost:5000 by default and can be used
   with the integration tests via:
 
       mix test --include live_call
@@ -29,7 +29,7 @@ defmodule Mix.Tasks.TestServer do
         aliases: [p: :port]
       )
 
-    port = Keyword.get(opts, :port, 4000)
+    port = Keyword.get(opts, :port, 5000)
 
     # Start the application
     Mix.Task.run("app.start")

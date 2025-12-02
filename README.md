@@ -161,7 +161,7 @@ This project includes a built-in Elixir-based MCP test server - no Docker needed
 mix test_server
 ```
 
-This starts an MCP server on `http://localhost:4000` with test tools:
+This starts an MCP server on `http://localhost:5000` with test tools:
 - `get_current_time` - Get current time in UTC or specified timezone
 - `get_timestamp` - Get current Unix timestamp
 - `add_numbers` - Add two numbers together
