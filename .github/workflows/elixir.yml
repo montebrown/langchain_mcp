@@ -8,96 +8,96 @@
 name: Elixir CI
 
 on:
-    push:
-        branches: ["main"]
-    pull_request:
-        branches: ["main"]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                    - pair:
-                          elixir: "1.16"
-                          otp: "25"
-                    - pair:
-                          elixir: "1.18"
-                          otp: "28"
-                      lint: lint
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pair:
+              elixir: "1.16"
+              otp: "25"
+          - pair:
+              elixir: "1.18"
+              otp: "28"
+            lint: lint
 
-        steps:
-            - uses: actions/checkout@v5
+    steps:
+      - uses: actions/checkout@v5
 
-            - uses: erlef/setup-beam@v1
-              with:
-                  elixir-version: "1.18"
-                  otp-version: "28"
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.18"
+          otp-version: "28"
 
-            - uses: actions/cache@v4
-              name: Restore dependencies cache
-              with:
-                  path: deps
-                  key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-                  restore-keys: ${{ runner.os }}-mix-
+      - uses: actions/cache@v4
+        name: Restore dependencies cache
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
 
-            - run: mix deps.get
+      - run: mix deps.get
 
-            - run: mix format --check-formatted
-              if: ${{ matrix.lint }}
+      - run: mix format --check-formatted
+        if: ${{ matrix.lint }}
 
-            - run: mix deps.get && mix deps.unlock --check-unused
-              if: ${{ matrix.lint }}
+      - run: mix deps.get && mix deps.unlock --check-unused
+        if: ${{ matrix.lint }}
 
-            - run: mix deps.compile
+      - run: mix deps.compile
 
-            - run: mix compile --warnings-as-errors
-              if: ${{ matrix.lint }}
+      - run: mix compile --warnings-as-errors
+        if: ${{ matrix.lint }}
 
-            - name: Run tests
-              run: mix test --exclude live_call
+      - name: Run tests
+        run: mix test --exclude live_call
 
-            - name: Run live_call tests with test server
-              run: |
-                  # Start test server in background
-                  mix test_server &
-                  TEST_SERVER_PID=$!
+      - name: Run live_call tests with test server
+        run: |
+          # Start test server in background
+          mix test_server &
+          TEST_SERVER_PID=$!
 
-                  # Wait for server to be ready (max 30 seconds)
-                  echo "Waiting for test server to start..."
-                  for i in {1..30}; do
-                    # Check if port 4000 is listening
-                    if nc -z localhost 4000 2>/dev/null; then
-                      echo "Test server is ready (port 4000 is listening)!"
-                      # Give it one more second to fully initialize
-                      sleep 1
-                      break
-                    fi
-                    if [ $i -eq 30 ]; then
-                      echo "Test server failed to start within 30 seconds"
-                      echo "Checking if process is still running..."
-                      if kill -0 $TEST_SERVER_PID 2>/dev/null; then
-                        echo "Process is running but port not open"
-                      else
-                        echo "Process has died"
-                      fi
-                      kill $TEST_SERVER_PID 2>/dev/null || true
-                      exit 1
-                    fi
-                    sleep 1
-                  done
+          # Wait for server to be ready (max 30 seconds)
+          echo "Waiting for test server to start..."
+          for i in {1..30}; do
+            # Check if port 5000 is listening
+            if nc -z localhost 5000 2>/dev/null; then
+              echo "Test server is ready (port 5000 is listening)!"
+              # Give it one more second to fully initialize
+              sleep 1
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Test server failed to start within 30 seconds"
+              echo "Checking if process is still running..."
+              if kill -0 $TEST_SERVER_PID 2>/dev/null; then
+                echo "Process is running but port not open"
+              else
+                echo "Process has died"
+              fi
+              kill $TEST_SERVER_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
 
-                  # Run integration tests
-                  mix test --include live_call
-                  TEST_EXIT_CODE=$?
+          # Run integration tests
+          mix test --include live_call
+          TEST_EXIT_CODE=$?
 
-                  # Cleanup: stop test server
-                  kill $TEST_SERVER_PID 2>/dev/null || true
+          # Cleanup: stop test server
+          kill $TEST_SERVER_PID 2>/dev/null || true
 
-                  # Exit with test result
-                  exit $TEST_EXIT_CODE
+          # Exit with test result
+          exit $TEST_EXIT_CODE

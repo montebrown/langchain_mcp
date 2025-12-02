@@ -11,7 +11,7 @@ defmodule LangChainMCP.TestServer do
       {:ok, _pid} = Anubis.Server.Supervisor.start_link(
         LangChainMCP.TestServer,
         transport: :streamable_http,
-        streamable_http: [port: 4000]
+        streamable_http: [port: 5000]
       )
 
   Or run from command line:

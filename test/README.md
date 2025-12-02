@@ -96,8 +96,8 @@ end
 ### Docker Server Won't Start
 
 ```bash
-# Check if port 4000 is already in use
-lsof -i :4000
+# Check if port 5000 is already in use
+lsof -i :5000
 
 # View server logs
 docker-compose logs mcp-time

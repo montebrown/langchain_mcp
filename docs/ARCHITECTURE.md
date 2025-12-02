@@ -847,14 +847,16 @@ results = Task.await_many(tasks)
 ### Test Server
 
 **LangChain.MCP.TestServer:**
+
 - Native Elixir MCP server
 - HTTP transport (streamable_http)
 - Three test tools
 - Started via `mix test_server`
 
 **Architecture:**
+
 ```
-Bandit HTTP Server (port 4000)
+Bandit HTTP Server (port 5000)
     │
     ▼
 Plug Router
