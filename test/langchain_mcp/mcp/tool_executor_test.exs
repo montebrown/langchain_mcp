@@ -1,12 +1,12 @@
 defmodule LangChain.MCP.ToolExecutorTest do
   use ExUnit.Case, async: true
 
-  alias LangChain.MCP.{ToolExecutor, Config}
+  alias LangChain.MCP.{Config, ToolExecutor}
 
   defmodule MockClient do
     @moduledoc "Mock MCP client for testing"
 
-    def list_tools(), do: {:ok, %{"result" => %{"tools" => [%{"name" => "test_tool"}]}}}
+    def list_tools, do: {:ok, %{"result" => %{"tools" => [%{"name" => "test_tool"}]}}}
 
     def call_tool(tool_name, args, _timeout) when is_map(args),
       do:
@@ -58,7 +58,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
         def call_tool(_name, _args, _timeout),
           do: raise("Unexpected error")
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config = Config.new!(client: ExceptionClient)
@@ -74,7 +74,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
       defmodule ToolsResponseClient do
         @moduledoc "Mock MCP client with proper tools response format"
 
-        def list_tools(), do: {:ok, %{"result" => %{"tools" => [%{"name" => "test_tool"}]}}}
+        def list_tools, do: {:ok, %{"result" => %{"tools" => [%{"name" => "test_tool"}]}}}
       end
 
       result = ToolExecutor.validate_tool(ToolsResponseClient, "test_tool")
@@ -85,7 +85,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
       defmodule ErrorToolsClient do
         @moduledoc "Mock MCP client that returns errors"
 
-        def list_tools(), do: {:error, "Connection failed"}
+        def list_tools, do: {:error, "Connection failed"}
       end
 
       {:error, reason} = ToolExecutor.validate_tool(ErrorToolsClient, "any_tool")
@@ -97,7 +97,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
       defmodule NoToolClient do
         @moduledoc "Mock MCP client without the requested tool"
 
-        def list_tools(), do: {:ok, %{"result" => %{"tools" => [%{"name" => "other_tool"}]}}}
+        def list_tools, do: {:ok, %{"result" => %{"tools" => [%{"name" => "other_tool"}]}}}
       end
 
       {:error, reason} = ToolExecutor.validate_tool(NoToolClient, "missing_tool")
@@ -120,7 +120,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
            }}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       {:ok, result} = ToolExecutor.execute_on_client(TimeoutContextClient, "test_tool", %{}, 5000)
@@ -138,7 +138,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
           {:error, %Anubis.MCP.Error{code: -1, reason: :request_timeout}}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       defmodule FallbackClient do
@@ -152,7 +152,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
            }}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config = Config.new!(client: PrimaryFailingClient, fallback_client: FallbackClient)
@@ -172,7 +172,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
           {:error, %Anubis.MCP.Error{code: -1, reason: :request_timeout}}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config = Config.new!(client: NonRetryableFailingClient)
@@ -191,7 +191,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
           {:error, %{reason: :request_timeout}}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config =
@@ -216,7 +216,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
           {:error, %{reason: :request_timeout}}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config = Config.new!(client: BothFailClient, fallback_client: BothFailClient)
@@ -241,7 +241,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
            }}
         end
 
-        def list_tools(), do: {:ok, []}
+        def list_tools, do: {:ok, []}
       end
 
       config = Config.new!(client: ContextMergeClient)
@@ -258,7 +258,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
       defmodule ListToolsClient do
         @moduledoc "Mock client with multiple tools"
 
-        def list_tools() do
+        def list_tools do
           {:ok,
            %{
              result: %{
@@ -287,7 +287,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
         @moduledoc "Mock client that initially fails with server capabilities error"
 
         # First call returns internal_error about missing capabilities
-        def list_tools() do
+        def list_tools do
           {:error, %{reason: :internal_error, data: %{message: "Server capabilities not set"}}}
         end
 
@@ -306,7 +306,7 @@ defmodule LangChain.MCP.ToolExecutorTest do
         @moduledoc "Mock client that returns different error types"
 
         # Test connection failure
-        def list_tools() do
+        def list_tools do
           {:error, %{reason: :connection_refused}}
         end
 

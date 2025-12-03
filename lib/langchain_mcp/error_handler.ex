@@ -127,25 +127,22 @@ defmodule LangChain.MCP.ErrorHandler do
   @spec should_retry?(term()) :: boolean()
   def should_retry?(%{__struct__: struct_name, reason: reason})
       when struct_name in [Anubis.MCP.Error, Anubis.Client.Error] do
-    case reason do
-      # Transient errors - should retry
-      :request_timeout -> true
-      :send_failure -> true
-      :connection_refused -> true
-      :internal_error -> true
-      :server_error -> true
-      # Permanent errors - should not retry
-      :parse_error -> false
-      :invalid_request -> false
-      :method_not_found -> false
-      :invalid_params -> false
-      :request_cancelled -> false
-      # Unknown - default to not retry
-      _ -> false
-    end
+    transient_error?(reason)
   end
 
   def should_retry?(_error), do: false
+
+  defp transient_error?(reason)
+       when reason in [
+              :request_timeout,
+              :send_failure,
+              :connection_refused,
+              :internal_error,
+              :server_error
+            ],
+       do: true
+
+  defp transient_error?(_reason), do: false
 
   # Format error messages based on reason codes
   defp format_error_message(:parse_error, _code, _error) do

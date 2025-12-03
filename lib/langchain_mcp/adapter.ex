@@ -153,27 +153,10 @@ defmodule LangChain.MCP.Adapter do
   def discover_tools(%__MODULE__{config: config, cached_tools: cached}, opts \\ []) do
     refresh = Keyword.get(opts, :refresh, false)
 
-    cond do
-      # Use cache if available and not forcing refresh
-      config.cache_tools && !refresh && cached != nil ->
-        {:ok, cached}
-
-      # Discover from server
-      true ->
-        case ToolExecutor.list_tools(config.client) do
-          {:ok, tools} ->
-            # Update cache if caching enabled
-            if config.cache_tools do
-              # Note: This doesn't actually update the struct in place.
-              # Caller should use the returned tools or call to_functions again
-              {:ok, tools}
-            else
-              {:ok, tools}
-            end
-
-          error ->
-            error
-        end
+    if config.cache_tools && !refresh && cached != nil do
+      {:ok, cached}
+    else
+      ToolExecutor.list_tools(config.client)
     end
   end
 
