@@ -40,7 +40,7 @@ Create a simple MCP integration:
 ```elixir
 # 1. Define MCP client
 defmodule MyApp.MCP do
-  use Anubis.Client,
+  use LangChain.MCP.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26"
@@ -75,7 +75,7 @@ tools = LangChain.MCP.Adapter.to_functions(adapter)
 
 ```elixir
 defmodule MyApp.GitHubMCP do
-  use Anubis.Client,
+  use LangChain.MCP.Client,
     name: "MyApp-GitHub",
     version: "1.0.0",
     protocol_version: "2025-03-26",
