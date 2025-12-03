@@ -162,6 +162,7 @@ mix test_server
 ```
 
 This starts an MCP server on `http://localhost:5000` with test tools:
+
 - `get_current_time` - Get current time in UTC or specified timezone
 - `get_timestamp` - Get current Unix timestamp
 - `add_numbers` - Add two numbers together

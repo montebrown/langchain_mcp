@@ -17,33 +17,33 @@ Technical reference for schemas, behaviors, and troubleshooting.
 
 ### Supported Types
 
-| JSON Schema Type | LangChain Type | Elixir Type | Notes |
-|-----------------|----------------|-------------|-------|
-| `"string"` | `:string` | `String.t()` | Text data |
-| `"number"` | `:number` | `float()` | Floating point |
-| `"integer"` | `:integer` | `integer()` | Whole numbers |
-| `"boolean"` | `:boolean` | `boolean()` | true/false |
-| `"array"` | `:array` | `list()` | Lists/arrays |
-| `"object"` | `:object` | `map()` | Nested objects |
-| `"null"` | - | `nil` | Handled as optional |
+| JSON Schema Type | LangChain Type | Elixir Type  | Notes               |
+| ---------------- | -------------- | ------------ | ------------------- |
+| `"string"`       | `:string`      | `String.t()` | Text data           |
+| `"number"`       | `:number`      | `float()`    | Floating point      |
+| `"integer"`      | `:integer`     | `integer()`  | Whole numbers       |
+| `"boolean"`      | `:boolean`     | `boolean()`  | true/false          |
+| `"array"`        | `:array`       | `list()`     | Lists/arrays        |
+| `"object"`       | `:object`      | `map()`      | Nested objects      |
+| `"null"`         | -              | `nil`        | Handled as optional |
 
 ### Supported Constraints
 
-| Constraint | Applies To | Example | Handling |
-|-----------|-----------|---------|----------|
-| `required` | All types | `"required": ["name"]` | Sets `required: true` |
-| `enum` | All types | `"enum": ["a", "b"]` | Sets `enum: [...]` |
-| `default` | All types | `"default": 10` | Preserved in param |
-| `minimum` | number/integer | `"minimum": 0` | Added to description |
-| `maximum` | number/integer | `"maximum": 100` | Added to description |
-| `minLength` | string | `"minLength": 1` | Added to description |
-| `maxLength` | string | `"maxLength": 255` | Added to description |
-| `pattern` | string | `"pattern": "^[a-z]+$"` | Added to description |
-| `minItems` | array | `"minItems": 1` | Added to description |
-| `maxItems` | array | `"maxItems": 10` | Added to description |
-| `items` | array | `"items": {...}` | Nested schema |
-| `properties` | object | `"properties": {...}` | Nested properties |
-| `additionalProperties` | object | `"additionalProperties": false` | Validation hint |
+| Constraint             | Applies To     | Example                         | Handling              |
+| ---------------------- | -------------- | ------------------------------- | --------------------- |
+| `required`             | All types      | `"required": ["name"]`          | Sets `required: true` |
+| `enum`                 | All types      | `"enum": ["a", "b"]`            | Sets `enum: [...]`    |
+| `default`              | All types      | `"default": 10`                 | Preserved in param    |
+| `minimum`              | number/integer | `"minimum": 0`                  | Added to description  |
+| `maximum`              | number/integer | `"maximum": 100`                | Added to description  |
+| `minLength`            | string         | `"minLength": 1`                | Added to description  |
+| `maxLength`            | string         | `"maxLength": 255`              | Added to description  |
+| `pattern`              | string         | `"pattern": "^[a-z]+$"`         | Added to description  |
+| `minItems`             | array          | `"minItems": 1`                 | Added to description  |
+| `maxItems`             | array          | `"maxItems": 10`                | Added to description  |
+| `items`                | array          | `"items": {...}`                | Nested schema         |
+| `properties`           | object         | `"properties": {...}`           | Nested properties     |
+| `additionalProperties` | object         | `"additionalProperties": false` | Validation hint       |
 
 ### Complete Schema Examples
 
@@ -65,6 +65,7 @@ Technical reference for schemas, behaviors, and troubleshooting.
 ```
 
 Converts to:
+
 ```elixir
 [
   %FunctionParam{
@@ -92,6 +93,7 @@ Converts to:
 ```
 
 Converts to:
+
 ```elixir
 [
   %FunctionParam{
@@ -151,9 +153,9 @@ Converts to:
     "user": {
       "type": "object",
       "properties": {
-        "name": {"type": "string"},
-        "email": {"type": "string"},
-        "age": {"type": "integer"}
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "age": { "type": "integer" }
       },
       "required": ["name", "email"]
     }
@@ -233,9 +235,7 @@ All MCP messages use JSON-RPC 2.0:
   "jsonrpc": "2.0",
   "id": "unique-request-id",
   "result": {
-    "content": [
-      {"type": "text", "text": "Result"}
-    ],
+    "content": [{ "type": "text", "text": "Result" }],
     "isError": false
   }
 }
@@ -257,16 +257,16 @@ All MCP messages use JSON-RPC 2.0:
 
 ### MCP Methods
 
-| Method | Purpose | Params | Returns |
-|--------|---------|--------|---------|
-| `initialize` | Initialize connection | client info | server info |
-| `tools/list` | List available tools | cursor | tools array |
-| `tools/call` | Execute tool | name, arguments | result content |
-| `resources/list` | List resources | cursor | resources array |
-| `resources/read` | Read resource | uri | resource content |
-| `prompts/list` | List prompts | cursor | prompts array |
-| `prompts/get` | Get prompt | name, arguments | prompt messages |
-| `ping` | Health check | - | empty result |
+| Method           | Purpose               | Params          | Returns          |
+| ---------------- | --------------------- | --------------- | ---------------- |
+| `initialize`     | Initialize connection | client info     | server info      |
+| `tools/list`     | List available tools  | cursor          | tools array      |
+| `tools/call`     | Execute tool          | name, arguments | result content   |
+| `resources/list` | List resources        | cursor          | resources array  |
+| `resources/read` | Read resource         | uri             | resource content |
+| `prompts/list`   | List prompts          | cursor          | prompts array    |
+| `prompts/get`    | Get prompt            | name, arguments | prompt messages  |
+| `ping`           | Health check          | -               | empty result     |
 
 ### Content Types
 
@@ -383,6 +383,7 @@ All MCP messages use JSON-RPC 2.0:
 ### Pre-filling Assistant Responses
 
 **Claude (Anthropic):**
+
 - ✅ Supports and encourages pre-filling
 - Works well with XML tags
 - Completes partial responses naturally
@@ -395,6 +396,7 @@ messages = [
 ```
 
 **ChatGPT (OpenAI):**
+
 - ⚠️ Limited support
 - May not include closing tags
 - Discouraged in API
@@ -408,12 +410,14 @@ messages = [
 ```
 
 **Gemini (Google):**
+
 - ⚠️ Not officially supported
 - Results may vary
 
 ### Image Content Handling
 
 **Claude (Anthropic):**
+
 - ✅ Requires separate media type field
 - ❌ Does NOT accept data URI format
 
@@ -426,6 +430,7 @@ ContentPart.image!("data:image/jpeg;base64,base64data...")
 ```
 
 **ChatGPT (OpenAI):**
+
 - ✅ Requires data URI format
 - Must include media type in data string
 
@@ -438,16 +443,19 @@ ContentPart.image!("base64data...", media: "image/jpeg")
 ```
 
 **Gemini (Google):**
+
 - ✅ Supports both formats
 - Prefers data URI format
 
 ### Token Usage Reporting
 
 **ChatGPT & Claude & Bumblebee:**
+
 - Return token usage at end of response
 - Single usage report per message
 
 **Gemini:**
+
 - Returns token usage in each delta
 - Cumulative count increments
 - Final message has total
@@ -455,16 +463,19 @@ ContentPart.image!("base64data...", media: "image/jpeg")
 ### Function Calling Differences
 
 **Claude:**
+
 - Native tool use via `tool_use` blocks
 - Supports multiple tool calls in sequence
 - Returns structured tool results
 
 **ChatGPT:**
+
 - Function calling via `function_call` field
 - Parallel function calling supported
 - Requires specific model versions (gpt-3.5-turbo-1106+)
 
 **Gemini:**
+
 - Function calling via `functionCall` field
 - Similar to ChatGPT format
 - Available in recent models
@@ -473,24 +484,24 @@ ContentPart.image!("base64data...", media: "image/jpeg")
 
 ### JSON-RPC Error Codes
 
-| Code | Name | Meaning | Retryable |
-|------|------|---------|-----------|
-| -32700 | Parse Error | Invalid JSON | No |
-| -32600 | Invalid Request | Malformed request | No |
-| -32601 | Method Not Found | Unknown method | No |
-| -32602 | Invalid Params | Bad parameters | No |
-| -32603 | Internal Error | Server error | Yes |
-| -32000 to -32099 | Server Error | Implementation-defined | Varies |
+| Code             | Name             | Meaning                | Retryable |
+| ---------------- | ---------------- | ---------------------- | --------- |
+| -32700           | Parse Error      | Invalid JSON           | No        |
+| -32600           | Invalid Request  | Malformed request      | No        |
+| -32601           | Method Not Found | Unknown method         | No        |
+| -32602           | Invalid Params   | Bad parameters         | No        |
+| -32603           | Internal Error   | Server error           | Yes       |
+| -32000 to -32099 | Server Error     | Implementation-defined | Varies    |
 
 ### MCP-Specific Errors
 
-| Code | Reason | Description | Retryable |
-|------|--------|-------------|-----------|
-| -32000 | `:send_failure` | Failed to send message | Yes |
-| -32001 | `:request_timeout` | Request timed out | Yes |
-| -32002 | `:connection_refused` | Server unavailable | Yes |
-| -32003 | `:request_cancelled` | Request cancelled | No |
-| -32004 | `:connection_lost` | Connection dropped | Yes |
+| Code   | Reason                | Description            | Retryable |
+| ------ | --------------------- | ---------------------- | --------- |
+| -32000 | `:send_failure`       | Failed to send message | Yes       |
+| -32001 | `:request_timeout`    | Request timed out      | Yes       |
+| -32002 | `:connection_refused` | Server unavailable     | Yes       |
+| -32003 | `:request_cancelled`  | Request cancelled      | No        |
+| -32004 | `:connection_lost`    | Connection dropped     | Yes       |
 
 ### Domain Errors
 
@@ -637,10 +648,12 @@ end
 #### ECONNREFUSED
 
 **Symptoms:**
+
 - `{:error, :econnrefused}`
 - Can't connect to MCP server
 
 **Diagnosis:**
+
 ```bash
 # Check if server is running
 curl http://localhost:5000/health
@@ -653,6 +666,7 @@ sudo iptables -L
 ```
 
 **Solutions:**
+
 1. Start MCP server
 2. Verify correct URL/port
 3. Check firewall rules
@@ -661,10 +675,12 @@ sudo iptables -L
 #### Connection Timeout
 
 **Symptoms:**
+
 - `{:error, :request_timeout}`
 - Long delays before failure
 
 **Diagnosis:**
+
 ```elixir
 # Test with longer timeout
 {:ok, adapter} = Adapter.new(
@@ -674,6 +690,7 @@ sudo iptables -L
 ```
 
 **Solutions:**
+
 1. Increase timeout value
 2. Check network latency: `ping server-host`
 3. Verify server is responsive
@@ -684,10 +701,12 @@ sudo iptables -L
 #### No Tools Found
 
 **Symptoms:**
+
 - `Adapter.to_functions(adapter)` returns `[]`
 - Tools expected but not available
 
 **Diagnosis:**
+
 ```elixir
 # Check raw response
 {:ok, response} = Anubis.Client.list_tools(MyApp.MCP)
@@ -695,6 +714,7 @@ IO.inspect(response.result)
 ```
 
 **Solutions:**
+
 1. Verify server has tools configured
 2. Check server logs for errors
 3. Ensure server is initialized properly
@@ -703,10 +723,12 @@ IO.inspect(response.result)
 #### Wrong Tools Returned
 
 **Symptoms:**
+
 - Unexpected tools in list
 - Expected tools missing
 
 **Diagnosis:**
+
 ```elixir
 # Check filter configuration
 {:ok, adapter} = Adapter.new(
@@ -726,6 +748,7 @@ IO.inspect(response.result)
 ```
 
 **Solutions:**
+
 1. Verify filter configuration
 2. Check tool names for typos
 3. Test filter function logic
@@ -736,10 +759,12 @@ IO.inspect(response.result)
 #### Method Not Found
 
 **Symptoms:**
+
 - `{:error, :method_not_found}`
 - Tool exists but can't be called
 
 **Diagnosis:**
+
 ```elixir
 # List tools
 {:ok, response} = Anubis.Client.list_tools(MyApp.MCP)
@@ -752,6 +777,7 @@ IO.inspect(tool_names, label: "Available tools")
 ```
 
 **Solutions:**
+
 1. Verify exact tool name (case-sensitive)
 2. Ensure tool is enabled on server
 3. Check server logs
@@ -760,10 +786,12 @@ IO.inspect(tool_names, label: "Available tools")
 #### Invalid Parameters
 
 **Symptoms:**
+
 - `{:error, :invalid_params}`
 - Parameters rejected
 
 **Diagnosis:**
+
 ```elixir
 # Check parameter schema
 tools = Adapter.to_functions(adapter)
@@ -779,6 +807,7 @@ IO.inspect(tool.parameters, label: "Expected parameters")
 ```
 
 **Solutions:**
+
 1. Verify parameter types match schema
 2. Ensure all required parameters provided
 3. Check parameter names (case-sensitive)
@@ -789,10 +818,12 @@ IO.inspect(tool.parameters, label: "Expected parameters")
 #### Slow Tool Discovery
 
 **Symptoms:**
+
 - First `to_functions` call takes seconds
 - Repeated calls still slow
 
 **Diagnosis:**
+
 ```elixir
 # Time the call
 {time_us, result} = :timer.tc(fn ->
@@ -805,6 +836,7 @@ IO.inspect(adapter.config.cache, label: "Cache enabled?")
 ```
 
 **Solutions:**
+
 1. Enable caching: `cache: true`
 2. Pre-warm cache at startup
 3. Check server performance
@@ -813,10 +845,12 @@ IO.inspect(adapter.config.cache, label: "Cache enabled?")
 #### Slow Tool Execution
 
 **Symptoms:**
+
 - Tool calls take too long
 - Timeouts occurring
 
 **Diagnosis:**
+
 ```elixir
 # Profile tool execution
 {time_us, result} = :timer.tc(fn ->
@@ -826,6 +860,7 @@ IO.puts("Tool execution took #{time_us / 1_000}ms")
 ```
 
 **Solutions:**
+
 1. Increase timeout if appropriate
 2. Optimize server-side tool implementation
 3. Use async execution if possible
@@ -836,10 +871,12 @@ IO.puts("Tool execution took #{time_us / 1_000}ms")
 #### Fallback Not Working
 
 **Symptoms:**
+
 - Primary fails but fallback not used
 - Both clients fail
 
 **Diagnosis:**
+
 ```elixir
 # Test error classification
 error = ... # your error
@@ -859,6 +896,7 @@ IO.puts("Type: #{type}, Retryable: #{retryable}")
 ```
 
 **Solutions:**
+
 1. Verify fallback client is running
 2. Ensure error is retryable (not domain error)
 3. Check fallback client configuration
@@ -867,10 +905,12 @@ IO.puts("Type: #{type}, Retryable: #{retryable}")
 #### Domain Errors Triggering Fallback
 
 **Symptoms:**
+
 - Tool errors causing unexpected fallbacks
 - Fallback called for business logic errors
 
 **Diagnosis:**
+
 ```elixir
 # Check error type
 error = %Response{is_error: true, result: %{...}}
@@ -879,6 +919,7 @@ IO.puts("Domain error should not retry: #{retryable}")
 ```
 
 **Solutions:**
+
 1. Handle domain errors separately
 2. Don't configure fallback for domain errors
 3. Check tool implementation
@@ -889,11 +930,13 @@ IO.puts("Domain error should not retry: #{retryable}")
 ### Connection Pooling
 
 **For HTTP Transports:**
+
 - Anubis uses HTTP client connection pooling automatically
 - No additional configuration needed
 - Reuses connections for multiple requests
 
 **For STDIO Transports:**
+
 - Each client maintains single subprocess
 - Consider multiple clients for parallelism
 - Balance between resource usage and concurrency

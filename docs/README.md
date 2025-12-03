@@ -7,6 +7,7 @@ Complete documentation for integrating Model Context Protocol (MCP) with LangCha
 This library (`langchain_mcp`) provides seamless integration between [LangChain Elixir](https://github.com/brainlid/langchain) and the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), enabling LLM agents to discover and use tools from any MCP-compatible server.
 
 **Key Features:**
+
 - Automatic tool discovery from MCP servers
 - JSON Schema to LangChain parameter conversion
 - Multi-modal content support (text, images)
@@ -65,6 +66,7 @@ mcp_tools = LangChain.MCP.Adapter.to_functions(adapter)
 ### MCP Servers
 
 MCP servers expose tools, resources, and prompts that LLMs can use. They can:
+
 - Run as separate processes (stdio transport)
 - Run as HTTP services (streamable_http transport)
 - Provide dynamic tool discovery
@@ -73,6 +75,7 @@ MCP servers expose tools, resources, and prompts that LLMs can use. They can:
 ### Anubis Client
 
 [Anubis MCP](https://github.com/zoedsoupe/anubis-mcp) is the Elixir MCP client library that handles:
+
 - Protocol communication (JSON-RPC 2.0)
 - Transport layer (stdio, HTTP, SSE, WebSocket)
 - Request/response lifecycle
@@ -81,6 +84,7 @@ MCP servers expose tools, resources, and prompts that LLMs can use. They can:
 ### LangChain MCP Adapter
 
 This library bridges Anubis and LangChain by:
+
 - Discovering tools from MCP servers
 - Converting JSON Schema to LangChain parameters
 - Executing tools through Anubis
@@ -321,6 +325,7 @@ config = Config.new!(
 **Problem:** `{:error, :econnrefused}`
 
 **Solution:** Ensure MCP server is running and reachable:
+
 ```bash
 # Check server is listening
 curl http://localhost:5000/health
@@ -336,6 +341,7 @@ curl http://localhost:5000/health
 **Problem:** Tool parameters not converting correctly
 
 **Solution:** Check JSON Schema format:
+
 ```elixir
 # Supported JSON Schema features
 %{
@@ -353,6 +359,7 @@ curl http://localhost:5000/health
 **Problem:** `{:error, :method_not_found}`
 
 **Solution:**
+
 1. Verify tool exists: `{:ok, resp} = MyMCP.list_tools()`
 2. Check tool name spelling
 3. Ensure server has initialized properly
@@ -369,6 +376,7 @@ See **[REFERENCE.md](REFERENCE.md)** for complete troubleshooting guide.
 ## Contributing
 
 This library follows LangChain Elixir conventions:
+
 - Ecto-style schemas and changesets
 - Comprehensive documentation
 - Type specs on public functions

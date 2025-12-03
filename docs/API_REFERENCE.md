@@ -24,11 +24,13 @@ Main entry point for MCP integration.
 Creates a new adapter instance with configuration.
 
 **Signature:**
+
 ```elixir
 @spec new(keyword() | map()) :: {:ok, %Adapter{}} | {:error, Ecto.Changeset.t()}
 ```
 
 **Options:**
+
 - `:client` (required) - Anubis client module (e.g., `MyApp.GitHubMCP`)
 - `:fallback_client` - Optional fallback client module
 - `:cache` - Enable tool caching (default: `true`)
@@ -40,6 +42,7 @@ Creates a new adapter instance with configuration.
 - `:before_fallback` - Callback before fallback `(error, context) -> any()`
 
 **Examples:**
+
 ```elixir
 # Basic usage
 {:ok, adapter} = Adapter.new(client: MyApp.MCP)
@@ -70,10 +73,12 @@ Creates a new adapter instance with configuration.
 ```
 
 **Returns:**
+
 - `{:ok, %Adapter{}}` - Successfully created adapter
 - `{:error, changeset}` - Validation failed
 
 **Errors:**
+
 - Missing required `:client`
 - Invalid timeout (must be > 0)
 - Invalid filter mode
@@ -86,11 +91,13 @@ Creates a new adapter instance with configuration.
 Same as `new/1` but raises on error.
 
 **Signature:**
+
 ```elixir
 @spec new!(keyword() | map()) :: %Adapter{}
 ```
 
 **Example:**
+
 ```elixir
 adapter = Adapter.new!(client: MyApp.MCP)
 ```
@@ -104,14 +111,17 @@ adapter = Adapter.new!(client: MyApp.MCP)
 Discovers MCP tools and converts them to LangChain Functions.
 
 **Signature:**
+
 ```elixir
 @spec to_functions(%Adapter{}, keyword()) :: [%Function{}]
 ```
 
 **Options:**
+
 - `:force_refresh` - Bypass cache and fetch fresh tools (default: `false`)
 
 **Example:**
+
 ```elixir
 # Use cached tools (if available)
 functions = Adapter.to_functions(adapter)
@@ -123,6 +133,7 @@ functions = Adapter.to_functions(adapter, force_refresh: true)
 **Returns:** List of `LangChain.Function` structs
 
 **Side Effects:**
+
 - May call `Anubis.Client.list_tools/1` if cache miss
 - Caches result if `:cache` is enabled
 
@@ -136,16 +147,19 @@ Returns empty list `[]` if tool discovery fails (logs error)
 Explicitly refresh tool cache.
 
 **Signature:**
+
 ```elixir
 @spec refresh_tools(%Adapter{}) :: {:ok, [map()]} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, fresh_tools} = Adapter.refresh_tools(adapter)
 ```
 
 **Returns:**
+
 - `{:ok, tools}` - List of raw MCP tool definitions
 - `{:error, reason}` - Tool discovery failed
 
@@ -160,11 +174,13 @@ Configuration validation and storage.
 Creates validated configuration.
 
 **Signature:**
+
 ```elixir
 @spec new(keyword() | map()) :: {:ok, %Config{}} | {:error, Ecto.Changeset.t()}
 ```
 
 **Schema Fields:**
+
 ```elixir
 %Config{
   client: module(),              # Required
@@ -180,12 +196,14 @@ Creates validated configuration.
 ```
 
 **Validations:**
+
 - `:client` is required
 - `:timeout` must be > 0
 - If `:filter` is `:only` or `:except`, `:filter_list` must be provided
 - Cannot specify both `:filter_list` and `:filter_fn`
 
 **Example:**
+
 ```elixir
 {:ok, config} = Config.new(
   client: MyApp.MCP,
@@ -201,6 +219,7 @@ Creates validated configuration.
 Same as `new/1` but raises on error.
 
 **Signature:**
+
 ```elixir
 @spec new!(keyword() | map()) :: %Config{}
 ```
@@ -212,11 +231,13 @@ Same as `new/1` but raises on error.
 Creates Ecto changeset for validation.
 
 **Signature:**
+
 ```elixir
 @spec changeset(%Config{}, map()) :: Ecto.Changeset.t()
 ```
 
 **Example:**
+
 ```elixir
 changeset = Config.changeset(%Config{}, %{client: MyApp.MCP})
 if changeset.valid? do
@@ -235,11 +256,13 @@ Converts between JSON Schema and LangChain FunctionParam.
 Convert JSON Schema to LangChain parameters.
 
 **Signature:**
+
 ```elixir
 @spec convert_input_schema(map()) :: [%FunctionParam{}]
 ```
 
 **Input Format:**
+
 ```elixir
 %{
   "type" => "object",
@@ -259,6 +282,7 @@ Convert JSON Schema to LangChain parameters.
 ```
 
 **Output Format:**
+
 ```elixir
 [
   %FunctionParam{
@@ -277,6 +301,7 @@ Convert JSON Schema to LangChain parameters.
 ```
 
 **Supported Type Mappings:**
+
 - `"string"` → `:string`
 - `"number"` → `:number`
 - `"integer"` → `:integer`
@@ -285,6 +310,7 @@ Convert JSON Schema to LangChain parameters.
 - `"object"` → `:object`
 
 **Supported Constraints:**
+
 - `required` - Marks parameter as required
 - `enum` - Converted to `enum: [values]`
 - `minimum`, `maximum` - Added to description
@@ -293,6 +319,7 @@ Convert JSON Schema to LangChain parameters.
 - `default` - Preserved in parameter
 
 **Examples:**
+
 ```elixir
 # Simple types
 schema = %{
@@ -332,6 +359,7 @@ params = SchemaConverter.convert_input_schema(schema)
 **Returns:** List of `FunctionParam` structs
 
 **Notes:**
+
 - Empty schema returns `[]`
 - Invalid schema logs warning and returns `[]`
 - Constraints added to parameter description
@@ -343,11 +371,13 @@ params = SchemaConverter.convert_input_schema(schema)
 Convert LangChain parameters back to JSON Schema.
 
 **Signature:**
+
 ```elixir
 @spec to_json_schema([%FunctionParam{}]) :: map()
 ```
 
 **Example:**
+
 ```elixir
 params = [
   %FunctionParam{name: "query", type: :string, required: true}
@@ -373,11 +403,13 @@ Maps MCP content to LangChain ContentParts.
 Convert MCP content array to ContentParts.
 
 **Signature:**
+
 ```elixir
 @spec map_content([map()]) :: [%ContentPart{}]
 ```
 
 **Input Format:**
+
 ```elixir
 [
   %{"type" => "text", "text" => "Hello"},
@@ -387,6 +419,7 @@ Convert MCP content array to ContentParts.
 ```
 
 **Output Format:**
+
 ```elixir
 [
   %ContentPart{type: :text, content: "Hello"},
@@ -396,6 +429,7 @@ Convert MCP content array to ContentParts.
 ```
 
 **Examples:**
+
 ```elixir
 # Text content
 content = [%{"type" => "text", "text" => "Result"}]
@@ -423,6 +457,7 @@ parts = ContentMapper.map_content(content)
 **Returns:** List of `ContentPart` structs
 
 **Notes:**
+
 - Unknown types logged as warning and converted to text
 - Empty list returns `[]`
 - Resources converted to text descriptions
@@ -434,11 +469,13 @@ parts = ContentMapper.map_content(content)
 Map single MCP content item.
 
 **Signature:**
+
 ```elixir
 @spec map_content_item(map()) :: %ContentPart{}
 ```
 
 **Example:**
+
 ```elixir
 item = %{"type" => "text", "text" => "Hello"}
 part = ContentMapper.map_content_item(item)
@@ -456,12 +493,14 @@ Error classification and handling.
 Classify error and determine retry-ability.
 
 **Signature:**
+
 ```elixir
 @spec classify_error(term()) :: {error_type, retryable?, message}
 when error_type: :protocol | :transport | :domain
 ```
 
 **Examples:**
+
 ```elixir
 # Protocol error
 error = %Anubis.MCP.Error{code: -32601, reason: :method_not_found}
@@ -480,6 +519,7 @@ error = %Anubis.MCP.Response{is_error: true, result: %{"isError" => true}}
 ```
 
 **Return Values:**
+
 - `{:protocol, true, message}` - JSON-RPC protocol error (retryable)
 - `{:transport, true, message}` - Connection error (retryable)
 - `{:domain, false, message}` - Tool execution error (not retryable)
@@ -492,11 +532,13 @@ error = %Anubis.MCP.Response{is_error: true, result: %{"isError" => true}}
 Determine if error should trigger fallback.
 
 **Signature:**
+
 ```elixir
 @spec should_retry?(term()) :: boolean()
 ```
 
 **Example:**
+
 ```elixir
 if ErrorHandler.should_retry?(error) do
   # Try fallback client
@@ -506,6 +548,7 @@ end
 ```
 
 **Returns:**
+
 - `true` - Protocol or transport error
 - `false` - Domain or unknown error
 
@@ -520,18 +563,21 @@ Tool execution with fallback support.
 Execute MCP tool through Anubis client.
 
 **Signature:**
+
 ```elixir
 @spec execute_tool(%Config{}, String.t(), map(), map()) ::
   {:ok, result} | {:error, term()}
 ```
 
 **Parameters:**
+
 - `config` - Adapter configuration
 - `tool_name` - Name of tool to execute
 - `arguments` - Tool arguments as map
 - `context` - Execution context (default: `%{}`)
 
 **Example:**
+
 ```elixir
 config = Config.new!(client: MyApp.MCP)
 {:ok, result} = ToolExecutor.execute_tool(
@@ -543,6 +589,7 @@ config = Config.new!(client: MyApp.MCP)
 ```
 
 **Flow:**
+
 1. Call `Anubis.Client.call_tool(client, tool_name, arguments)`
 2. Check response for errors
 3. If transient error and fallback configured, try fallback
@@ -550,10 +597,12 @@ config = Config.new!(client: MyApp.MCP)
 5. Return result
 
 **Returns:**
+
 - `{:ok, [%ContentPart{}, ...]}` - Success
 - `{:error, reason}` - Failure (after retries if configured)
 
 **Errors:**
+
 - `{:error, :method_not_found}` - Tool doesn't exist
 - `{:error, :invalid_params}` - Invalid arguments
 - `{:error, :request_timeout}` - Timeout
@@ -578,6 +627,7 @@ end
 ```
 
 **Options:**
+
 - `:name` (required) - Client name
 - `:version` (required) - Client version
 - `:protocol_version` (required) - MCP protocol version
@@ -590,15 +640,18 @@ end
 Start the client GenServer.
 
 **Signature:**
+
 ```elixir
 @spec start_link(keyword()) :: GenServer.on_start()
 ```
 
 **Options:**
+
 - `:transport` (required) - Transport configuration
 - `:name` - GenServer name (atom or via tuple)
 
 **Transport Options:**
+
 ```elixir
 # STDIO (subprocess)
 {:stdio, command: "npx", args: ["mcp-server"]}
@@ -614,6 +667,7 @@ Start the client GenServer.
 ```
 
 **Example:**
+
 ```elixir
 {:ok, pid} = MyApp.MCPClient.start_link(
   transport: {:streamable_http, base_url: "http://localhost:5000"},
@@ -628,11 +682,13 @@ Start the client GenServer.
 Discover available tools from server.
 
 **Signature:**
+
 ```elixir
 @spec list_tools(GenServer.name()) :: {:ok, %Response{}} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, response} = MyApp.MCPClient.list_tools(:my_mcp_client)
 tools = response.result["tools"]
@@ -640,6 +696,7 @@ tools = response.result["tools"]
 ```
 
 **Response Format:**
+
 ```elixir
 %Response{
   result: %{
@@ -662,12 +719,14 @@ tools = response.result["tools"]
 Execute a tool by name.
 
 **Signature:**
+
 ```elixir
 @spec call_tool(GenServer.name(), String.t(), map()) ::
   {:ok, %Response{}} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, response} = MyApp.MCPClient.call_tool(
   :my_mcp_client,
@@ -683,6 +742,7 @@ end
 ```
 
 **Response Format:**
+
 ```elixir
 %Response{
   result: %{
@@ -703,11 +763,13 @@ end
 List available resources.
 
 **Signature:**
+
 ```elixir
 @spec list_resources(GenServer.name()) :: {:ok, %Response{}} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, response} = MyApp.MCPClient.list_resources(:my_mcp_client)
 resources = response.result["resources"]
@@ -720,12 +782,14 @@ resources = response.result["resources"]
 Read a specific resource.
 
 **Signature:**
+
 ```elixir
 @spec read_resource(GenServer.name(), String.t()) ::
   {:ok, %Response{}} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, response} = MyApp.MCPClient.read_resource(
   :my_mcp_client,
@@ -741,6 +805,7 @@ contents = response.result["contents"]
 List available prompt templates.
 
 **Signature:**
+
 ```elixir
 @spec list_prompts(GenServer.name()) :: {:ok, %Response{}} | {:error, term()}
 ```
@@ -752,12 +817,14 @@ List available prompt templates.
 Get a prompt template with arguments.
 
 **Signature:**
+
 ```elixir
 @spec get_prompt(GenServer.name(), String.t(), map()) ::
   {:ok, %Response{}} | {:error, term()}
 ```
 
 **Example:**
+
 ```elixir
 {:ok, response} = MyApp.MCPClient.get_prompt(
   :my_mcp_client,
@@ -774,11 +841,13 @@ messages = response.result["messages"]
 Health check.
 
 **Signature:**
+
 ```elixir
 @spec ping(GenServer.name()) :: :pong
 ```
 
 **Example:**
+
 ```elixir
 :pong = MyApp.MCPClient.ping(:my_mcp_client)
 ```
@@ -790,11 +859,13 @@ Health check.
 Close client connection.
 
 **Signature:**
+
 ```elixir
 @spec close(GenServer.name()) :: :ok
 ```
 
 **Example:**
+
 ```elixir
 :ok = MyApp.MCPClient.close(:my_mcp_client)
 ```

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial release
 - `LangChain.MCP.Adapter` for converting MCP tools to LangChain functions
 - `LangChain.MCP.SchemaConverter` for JSON Schema to FunctionParam conversion
