@@ -22,7 +22,7 @@ This library (`langchain_mcp`) provides seamless integration between [LangChain 
 
 # 2. Define an MCP client
 defmodule MyApp.GitHubMCP do
-  use Anubis.Client,
+  use LangChain.MCP.Client,
     name: "MyApp",
     version: "1.0.0",
     protocol_version: "2025-03-26"

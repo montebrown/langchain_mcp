@@ -8,7 +8,7 @@ defmodule LangChainMCP.TestClient do
 
   Connects to a local MCP server (via Docker) for live testing.
   """
-  use Anubis.Client,
+  use LangChain.MCP.Client,
     name: "LangChainMCP Test",
     version: "0.1.0",
     protocol_version: "2025-03-26"
