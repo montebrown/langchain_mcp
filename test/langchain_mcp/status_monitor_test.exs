@@ -1,5 +1,5 @@
 defmodule LangChain.MCP.StatusMonitorTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias LangChain.MCP.StatusMonitor
 
@@ -262,6 +262,8 @@ defmodule LangChain.MCP.StatusMonitorTest do
       StatusMonitor.unregister_client(:periodic_test)
       StatusMonitor.unregister_client(:mixed_test_1)
       StatusMonitor.unregister_client(:mixed_test_2)
+      StatusMonitor.unregister_client(:list_test_1)
+      StatusMonitor.unregister_client(:list_test_2)
 
       result = StatusMonitor.periodic_status_update()
 
