@@ -1,6 +1,9 @@
 # Ensure dependencies are started
 Application.ensure_all_started(:anubis_mcp)
 
+# Start the LangChain.MCP application to ensure Registry is available
+Application.ensure_all_started(:langchain_mcp)
+
 # Define the MCP test client for live tests
 defmodule LangChainMCP.TestClient do
   @moduledoc """
