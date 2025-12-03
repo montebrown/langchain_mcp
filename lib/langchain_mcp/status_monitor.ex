@@ -102,7 +102,7 @@ defmodule LangChain.MCP.StatusMonitor do
 
     - Map with client names as keys and `{:ok, status}` or `{:error, reason}` as values
   """
-  def get_all_clients_status() do
+  def get_all_clients_status do
     Registry.select(@registry_name, [{{:"$1", :_, :_}, [], [:"$1"]}])
     |> Enum.reduce(%{}, fn name, acc ->
       case get_client_status(name) do
@@ -153,7 +153,7 @@ defmodule LangChain.MCP.StatusMonitor do
       - `:total_clients` - Total number of clients
       - `:uptime_percentage` - Percentage of healthy clients
   """
-  def health_summary() do
+  def health_summary do
     all_statuses = get_all_clients_status()
 
     {healthy_count, unhealthy_count} =
@@ -196,7 +196,7 @@ defmodule LangChain.MCP.StatusMonitor do
       - `%{ready?: true}` - Client is available
       - `%{ready?: false, error: reason}` - Client is unavailable
   """
-  def periodic_status_update() do
+  def periodic_status_update do
     Registry.select(@registry_name, [{{:"$1", :_, :_}, [], [:"$1"]}])
     |> Enum.reduce(%{}, fn name, acc ->
       case get_client_status(name) do
@@ -213,7 +213,7 @@ defmodule LangChain.MCP.StatusMonitor do
 
     - List of atom names of registered clients
   """
-  def list_clients() do
+  def list_clients do
     Registry.select(@registry_name, [{{:"$1", :_, :_}, [], [:"$1"]}])
   end
 
@@ -224,7 +224,7 @@ defmodule LangChain.MCP.StatusMonitor do
 
     - Integer count of registered clients
   """
-  def count_clients() do
+  def count_clients do
     length(list_clients())
   end
 
@@ -324,7 +324,7 @@ defmodule LangChain.MCP.StatusMonitor do
       - `:summary` - Health summary with uptime percentage
       - `:timestamp` - Current timestamp
   """
-  def dashboard_status() do
+  def dashboard_status do
     clients =
       Registry.select(@registry_name, [{{:"$1", :_, :_}, [], [:"$1"]}])
       |> Enum.reduce(%{}, fn name, acc ->

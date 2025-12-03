@@ -154,34 +154,9 @@ defmodule LangChain.MCP.ContentMapper do
     mime_type = item["mimeType"]
 
     cond do
-      # If we have text content, treat as text
-      text && is_binary(text) ->
-        case ContentPart.new(%{type: :text, content: text}) do
-          {:ok, part} -> part
-          {:error, _} -> nil
-        end
-
-      # If we have a URI, treat as file_url
-      uri && is_binary(uri) ->
-        options = if mime_type, do: [media: mime_type], else: []
-
-        case ContentPart.new(%{type: :file_url, content: uri, options: options}) do
-          {:ok, part} -> part
-          {:error, _} -> nil
-        end
-
-      # Otherwise, unsupported
-      true ->
-        Logger.debug("Resource content type not fully supported: #{inspect(item)}")
-
-        case ContentPart.new(%{
-               type: :unsupported,
-               content: inspect(item),
-               options: [mcp_type: "resource"]
-             }) do
-          {:ok, part} -> part
-          {:error, _} -> nil
-        end
+      text && is_binary(text) -> create_text_part(text)
+      uri && is_binary(uri) -> create_file_url_part(uri, mime_type)
+      true -> create_unsupported_part(item, "resource")
     end
   end
 
@@ -201,6 +176,35 @@ defmodule LangChain.MCP.ContentMapper do
   defp convert_content_item(item) do
     Logger.warning("Invalid MCP content item: #{inspect(item)}")
     nil
+  end
+
+  defp create_text_part(text) do
+    case ContentPart.new(%{type: :text, content: text}) do
+      {:ok, part} -> part
+      {:error, _} -> nil
+    end
+  end
+
+  defp create_file_url_part(uri, mime_type) do
+    options = if mime_type, do: [media: mime_type], else: []
+
+    case ContentPart.new(%{type: :file_url, content: uri, options: options}) do
+      {:ok, part} -> part
+      {:error, _} -> nil
+    end
+  end
+
+  defp create_unsupported_part(item, mcp_type) do
+    Logger.debug("Resource content type not fully supported: #{inspect(item)}")
+
+    case ContentPart.new(%{
+           type: :unsupported,
+           content: inspect(item),
+           options: [mcp_type: mcp_type]
+         }) do
+      {:ok, part} -> part
+      {:error, _} -> nil
+    end
   end
 
   # Parse mime type into media format

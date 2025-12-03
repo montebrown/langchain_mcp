@@ -6,7 +6,7 @@ defmodule LangChain.MCP.ErrorHandlerTest do
   describe "handle_error/1" do
     test "handles Anubis.MCP protocol errors correctly" do
       error = %Anubis.MCP.Error{
-        code: -32600,
+        code: -32_600,
         reason: :invalid_request,
         message: "Invalid request format"
       }
@@ -19,7 +19,7 @@ defmodule LangChain.MCP.ErrorHandlerTest do
       # Simulating transport error struct that matches the pattern expected by ErrorHandler
       error = %{
         __struct__: Anubis.MCP.Error,
-        code: -32000,
+        code: -32_000,
         reason: :connection_refused,
         message: "Connection refused"
       }
@@ -47,16 +47,16 @@ defmodule LangChain.MCP.ErrorHandlerTest do
 
     test "formats different protocol errors correctly" do
       test_cases = [
-        {%Anubis.MCP.Error{code: -32700, reason: :parse_error},
+        {%Anubis.MCP.Error{code: -32_700, reason: :parse_error},
          "MCP protocol error (parse_error): Invalid JSON in request or response"},
         {%Anubis.MCP.Error{
-           code: -32601,
+           code: -32_601,
            reason: :method_not_found,
            data: %{"method" => "test_method"}
          }, "MCP protocol error (method_not_found): Method 'test_method' not found"},
-        {%Anubis.MCP.Error{code: -32602, reason: :invalid_params},
+        {%Anubis.MCP.Error{code: -32_602, reason: :invalid_params},
          "MCP protocol error (invalid_params): Invalid parameters provided"},
-        {%Anubis.MCP.Error{code: -32800, reason: :internal_error},
+        {%Anubis.MCP.Error{code: -32_800, reason: :internal_error},
          "MCP protocol error (internal_error): Server internal error"}
       ]
 
@@ -67,13 +67,13 @@ defmodule LangChain.MCP.ErrorHandlerTest do
 
     test "formats transport errors correctly" do
       transport_errors = [
-        {%Anubis.MCP.Error{code: -32000, reason: :request_timeout},
+        {%Anubis.MCP.Error{code: -32_000, reason: :request_timeout},
          "MCP transport error (request_timeout): Request timed out"},
-        {%Anubis.MCP.Error{code: -32001, reason: :send_failure},
+        {%Anubis.MCP.Error{code: -32_001, reason: :send_failure},
          "MCP transport error (send_failure): Failed to send message"},
-        {%Anubis.MCP.Error{code: -32002, reason: :connection_refused},
+        {%Anubis.MCP.Error{code: -32_002, reason: :connection_refused},
          "MCP transport error (connection_refused): Could not connect to server"},
-        {%Anubis.MCP.Error{code: -32003, reason: :request_cancelled},
+        {%Anubis.MCP.Error{code: -32_003, reason: :request_cancelled},
          "MCP transport error (request_cancelled): Request was cancelled"}
       ]
 
@@ -95,7 +95,7 @@ defmodule LangChain.MCP.ErrorHandlerTest do
 
     test "handles errors without custom message" do
       error = %Anubis.MCP.Error{
-        code: -32600,
+        code: -32_600,
         reason: :invalid_request
       }
 
@@ -275,7 +275,7 @@ defmodule LangChain.MCP.ErrorHandlerTest do
 
     test "handles errors without reason field" do
       # Test edge case where error struct might not have reason field
-      error = %{__struct__: Anubis.MCP.Error, code: -32600}
+      error = %{__struct__: Anubis.MCP.Error, code: -32_600}
 
       assert ErrorHandler.should_retry?(error) == false
     end

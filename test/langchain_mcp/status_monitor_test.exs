@@ -1,5 +1,5 @@
 defmodule LangChain.MCP.StatusMonitorTest do
-  use ExUnit.Case, async: false
+  use LangChainMCP.MCPCase, async: true
 
   alias LangChain.MCP.StatusMonitor
 
@@ -95,10 +95,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
 
   describe "get_all_clients_status/0" do
     test "returns empty map when no clients registered" do
-      # Clean slate by unregistering any existing test clients
-      StatusMonitor.unregister_client(:test_client_1)
-      StatusMonitor.unregister_client(:agent_client)
-
       result = StatusMonitor.get_all_clients_status()
 
       assert %{} == result
@@ -175,9 +171,7 @@ defmodule LangChain.MCP.StatusMonitorTest do
 
   describe "health_summary/0" do
     test "returns empty summary when no clients" do
-      # Clean up any existing registrations first
-      StatusMonitor.unregister_client(:test_client_1)
-      StatusMonitor.unregister_client(:good_client)
+      # Rely on centralized cleanup from MCPCase setup
 
       result = StatusMonitor.health_summary()
 
@@ -258,12 +252,7 @@ defmodule LangChain.MCP.StatusMonitorTest do
     end
 
     test "returns empty map when no clients registered" do
-      # Clean up first
-      StatusMonitor.unregister_client(:periodic_test)
-      StatusMonitor.unregister_client(:mixed_test_1)
-      StatusMonitor.unregister_client(:mixed_test_2)
-      StatusMonitor.unregister_client(:list_test_1)
-      StatusMonitor.unregister_client(:list_test_2)
+      # Rely on centralized cleanup from MCPCase setup
 
       result = StatusMonitor.periodic_status_update()
 
@@ -287,9 +276,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
     end
 
     test "returns empty list when no clients" do
-      StatusMonitor.unregister_client(:list_test_1)
-      StatusMonitor.unregister_client(:list_test_2)
-
       clients = StatusMonitor.list_clients()
 
       assert clients == []
@@ -308,9 +294,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
     end
 
     test "returns 0 when no clients" do
-      StatusMonitor.unregister_client(:count_test_1)
-      StatusMonitor.unregister_client(:count_test_2)
-
       assert StatusMonitor.count_clients() == 0
     end
   end
@@ -372,51 +355,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
     end
   end
 
-  setup do
-    # Clean up any test registrations after each test
-    on_exit(fn ->
-      Enum.each(
-        [
-          :test_client_1,
-          :test_update,
-          :test_remove,
-          :not_registered,
-          :agent_client,
-          :dead_client,
-          :client_1,
-          :client_2,
-          :good_client,
-          :bad_client,
-          :health_test,
-          :dead_health_test,
-          :good_summary_test,
-          :bad_summary_test,
-          :mixed_test_1,
-          :mixed_test_2,
-          :non_existent,
-          :periodic_test,
-          :error_periodic,
-          :main_client,
-          :"client-with-dash",
-          :list_test_1,
-          :list_test_2,
-          :count_test_1,
-          :count_test_2,
-          :registered_test,
-          :not_registered_test,
-          :dashboard_test,
-          :dashboard_detail_test,
-          :dashboard_unhealthy
-        ],
-        fn name ->
-          StatusMonitor.unregister_client(name)
-        end
-      )
-    end)
-
-    :ok
-  end
-
   describe "register_client_by_name/3" do
     test "waits for and registers a client by module name" do
       # Start a named process
@@ -431,8 +369,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       {:ok, status} = StatusMonitor.get_client_status(:test_by_name)
       assert status.pid == pid
 
-      # Cleanup
-      StatusMonitor.unregister_client(:test_by_name)
       Agent.stop(pid)
     end
 
@@ -465,8 +401,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       # Wait for the PID message
       assert_receive {:started, pid}, 500
 
-      # Cleanup
-      StatusMonitor.unregister_client(:delayed_client)
       Agent.stop(pid)
     end
 
@@ -479,8 +413,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       assert {:ok, :already_registered} =
                StatusMonitor.register_client_by_name(AlreadyRegisteredModule, :already_reg)
 
-      # Cleanup
-      StatusMonitor.unregister_client(:already_reg)
       Agent.stop(pid)
     end
 
@@ -510,8 +442,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       assert {:ok, :registered} =
                StatusMonitor.register_client_by_name(DefaultTimeoutModule, :default_timeout)
 
-      # Cleanup
-      StatusMonitor.unregister_client(:default_timeout)
       Agent.stop(pid)
     end
 
@@ -536,10 +466,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       assert StatusMonitor.registered?(:concurrent2)
       assert StatusMonitor.registered?(:concurrent3)
 
-      # Cleanup
-      StatusMonitor.unregister_client(:concurrent1)
-      StatusMonitor.unregister_client(:concurrent2)
-      StatusMonitor.unregister_client(:concurrent3)
       Agent.stop(pid1)
       Agent.stop(pid2)
       Agent.stop(pid3)
@@ -569,8 +495,6 @@ defmodule LangChain.MCP.StatusMonitorTest do
       # Verify registration
       assert StatusMonitor.registered?(:mcp_client_test)
 
-      # Cleanup
-      StatusMonitor.unregister_client(:mcp_client_test)
       Supervisor.stop(pid)
     end
   end

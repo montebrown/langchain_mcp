@@ -80,7 +80,7 @@ defmodule LangChain.MCP.ToolExecutor do
           execute_on_client(
             config.fallback_client,
             tool_name,
-            args || %{},
+            args,
             config.timeout,
             merged_context
           )
@@ -114,7 +114,7 @@ defmodule LangChain.MCP.ToolExecutor do
     opts = build_call_opts(timeout)
 
     # Call the MCP tool via Anubis.Client
-    case apply(client, :call_tool, [tool_name, args, opts]) do
+    case client.call_tool(tool_name, args, opts) do
       {:ok, response} ->
         handle_response(response, tool_name, context)
 
@@ -145,16 +145,12 @@ defmodule LangChain.MCP.ToolExecutor do
 
   # Convert MCP result to LangChain format
   defp convert_result_to_langchain(%{"content" => content}, context) when is_list(content) do
-    cond do
-      # If single text item, return as string
-      single_text?(content) ->
-        text = ContentMapper.extract_text(content)
-        wrap_result(text, context)
-
-      # If multiple items or non-text, return as ContentParts
-      true ->
-        parts = ContentMapper.to_content_parts(content)
-        wrap_result(parts, context)
+    if single_text?(content) do
+      text = ContentMapper.extract_text(content)
+      wrap_result(text, context)
+    else
+      parts = ContentMapper.to_content_parts(content)
+      wrap_result(parts, context)
     end
   end
 
@@ -237,8 +233,6 @@ defmodule LangChain.MCP.ToolExecutor do
     end
   end
 
-  defp extract_original_error(error), do: error
-
   @doc """
   Validates that a tool exists on the MCP server before execution.
 
@@ -264,7 +258,7 @@ defmodule LangChain.MCP.ToolExecutor do
   """
   @spec validate_tool(module(), String.t()) :: :ok | {:error, String.t()}
   def validate_tool(client, tool_name) do
-    case apply(client, :list_tools, []) do
+    case client.list_tools() do
       {:ok, response} ->
         tools = response["result"]["tools"] || []
         tool_names = Enum.map(tools, & &1["name"])
@@ -306,7 +300,7 @@ defmodule LangChain.MCP.ToolExecutor do
   @spec list_tools_with_retry(module(), non_neg_integer(), non_neg_integer()) ::
           {:ok, [map()]} | {:error, String.t()}
   defp list_tools_with_retry(client, retries_left, delay_ms) when retries_left > 0 do
-    case apply(client, :list_tools, []) do
+    case client.list_tools() do
       {:ok, response} ->
         tools = response.result["tools"] || []
         {:ok, tools}
