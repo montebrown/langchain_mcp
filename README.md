@@ -10,6 +10,7 @@ Model Context Protocol (MCP) integration for LangChain Elixir. This library enab
 - 📦 **Multi-modal Content** - Full support for text, images, and other content types
 - ⚙️ **Configurable** - Cache tool discovery, configure timeouts, async execution
 - 🧪 **Testing** - Mock support for unit tests, live test infrastructure with Docker
+- 📊 **Status Monitoring** - Real-time monitoring of MCP client health with LiveView support
 
 ## Installation
 
@@ -108,6 +109,71 @@ mcp_functions = Adapter.to_functions(adapter, only: ["search", "fetch"])
 # Exclude certain tools
 mcp_functions = Adapter.to_functions(adapter, except: ["admin_tool"])
 ```
+
+## Status Monitoring
+
+Monitor the health and status of your MCP clients in real-time.
+
+### Register Clients
+
+Register clients from your Application module:
+
+```elixir
+defmodule MyApp.Application do
+  use Application
+  alias LangChain.MCP.StatusMonitor
+
+  def start(_type, _args) do
+    children = [
+      {MyApp.GitHubMCP, transport: {:streamable_http, base_url: "http://localhost:5000"}}
+    ]
+
+    {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
+
+    # Register clients for status monitoring
+    StatusMonitor.register_client_by_name(MyApp.GitHubMCP, :github)
+
+    {:ok, self()}
+  end
+end
+```
+
+### Query Client Status
+
+```elixir
+alias LangChain.MCP.StatusMonitor
+
+# Check if registered
+StatusMonitor.registered?(:github)
+# => true
+
+# Get client status
+StatusMonitor.get_client_status(:github)
+# => {:ok, %{pid: #PID<0.123.0>}}
+
+# Get health summary
+StatusMonitor.health_summary()
+# => %{
+#   healthy_clients: [:github, :filesystem],
+#   unhealthy_clients: [],
+#   total_clients: 2,
+#   uptime_percentage: 100.0
+# }
+
+# Get dashboard-ready status
+StatusMonitor.dashboard_status()
+```
+
+### Phoenix LiveView Integration
+
+A complete LiveView example is included for real-time status monitoring:
+
+- Auto-refreshing dashboard (every 2 seconds)
+- Color-coded health indicators
+- Uptime percentage tracking
+- Detailed client information
+
+See `examples/phoenix_liveview_example.ex` and `STATUS_MONITOR.md` for complete documentation.
 
 ## Fallback Support
 
