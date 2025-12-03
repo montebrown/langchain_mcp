@@ -22,6 +22,12 @@ defmodule LangChainMCP.MCPCase do
     quote do
       import LangChainMCP.MCPCase
       alias LangChainMCP.TestClient
+
+      # Automatically cleanup status monitor clients after each test
+      setup do
+        on_exit(&LangChainMCP.MCPCase.cleanup_status_monitor_clients/0)
+        :ok
+      end
     end
   end
 
@@ -82,5 +88,60 @@ defmodule LangChainMCP.MCPCase do
       {:error, _} ->
         false
     end
+  end
+
+  @doc """
+  Comprehensive cleanup of all StatusMonitor test clients.
+
+  This function unregisters ALL client names that might be registered during testing,
+  preventing test bleed between different test cases.
+  """
+  def cleanup_status_monitor_clients do
+    alias LangChain.MCP.StatusMonitor
+
+    # All possible client names used across tests
+    test_client_names = [
+      :test_client_1,
+      :test_update,
+      :main_client,
+      :"client-with-dash",
+      :test_remove,
+      :non_existent_client,
+      :agent_client,
+      :dead_client,
+      :not_registered,
+      :good_client,
+      :bad_client,
+      :health_test,
+      :dead_health_test,
+      :good_summary_test,
+      :bad_summary_test,
+      :mixed_test_1,
+      :mixed_test_2,
+      :non_existent,
+      :periodic_test,
+      :error_periodic,
+      :list_test_1,
+      :list_test_2,
+      :count_test_1,
+      :count_test_2,
+      :registered_test,
+      :not_registered_test,
+      :dashboard_test,
+      :dashboard_detail_test,
+      :dashboard_unhealthy,
+      :test_by_name,
+      :never_started,
+      :delayed_client,
+      :already_reg,
+      :short_timeout,
+      :default_timeout,
+      :concurrent1,
+      :concurrent2,
+      :concurrent3,
+      :mcp_client_test
+    ]
+
+    Enum.each(test_client_names, &StatusMonitor.unregister_client(&1))
   end
 end
