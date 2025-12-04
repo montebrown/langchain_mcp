@@ -51,6 +51,12 @@ jobs:
       - run: mix format --check-formatted
         if: ${{ matrix.lint }}
 
+      - run: mix credo --strict
+        if: ${{ matrix.lint }}
+
+      - run: mix dialyzer
+        if: ${{ matrix.lint }}
+
       - run: mix deps.get && mix deps.unlock --check-unused
         if: ${{ matrix.lint }}
 
