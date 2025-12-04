@@ -1,5 +1,5 @@
 defmodule LangChain.MCP.StatusMonitorTest do
-  use LangChainMCP.MCPCase, async: true
+  use LangChainMCP.MCPCase, async: false
 
   alias LangChain.MCP.StatusMonitor
 
