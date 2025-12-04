@@ -2,6 +2,8 @@
 
 Model Context Protocol (MCP) integration for LangChain Elixir. This library enables LangChain applications to use MCP servers as tool providers, giving instant access to the growing ecosystem of MCP servers.
 
+📚 **[Full Documentation](https://hexdocs.pm/langchain_mcp/readme.html)** - Complete API reference and guides available on HexDocs
+
 ## Features
 
 - 🔌 **Easy Integration** - Add MCP tools to your LangChain workflows with minimal code
