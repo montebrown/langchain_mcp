@@ -137,8 +137,8 @@ jobs:
           # Ensure we have the latest changes
           git pull --rebase origin main
 
-          # Publish to Hex
-          mix hex.publish
+          # Publish to Hex (--yes flag skips confirmation prompt)
+          mix hex.publish --yes
 
       - name: Create GitHub release
         if: steps.check_version.outputs.CHANGED == 'true'
