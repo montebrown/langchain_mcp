@@ -287,6 +287,37 @@ Many MCP servers are available via Docker Hub:
 
 See [Docker Hub MCP Catalog](https://hub.docker.com/mcp) for more.
 
+## Contributing
+
+### Quality Checks
+Before pushing, ensure code meets quality standards:
+
+```bash
+# Run all checks (same as CI)
+mix quality_check
+
+# Or run individually:
+mix format --check-formatted    # Code formatting  
+mix credo --strict              # L linting
+mix dialyzer                    # Type checking
+mix test --exclude live_call    # Unit tests only
+```
+
+The automated release workflow requires these checks to pass. Use `mix quality_check` locally before committing.
+
+### Testing
+
+- **Unit tests**: Standard ExUnit with mocking via `:mimic`
+- **Integration tests**: Tagged `:live_call`, require running test server
+
+```bash
+# Start test server (Terminal 1)
+mix test_server
+
+# Run integration tests (Terminal 2)  
+mix test --include live_call
+```
+
 ## Architecture
 
 ```
