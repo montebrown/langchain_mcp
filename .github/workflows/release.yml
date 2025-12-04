@@ -15,16 +15,16 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v5
-      
+
       - name: Extract version from mix.exs
         id: version
         run: |
           VERSION=$(grep '^\s*@version\s' mix.exs | sed 's/.*"\([^"]*\)".*/\1/')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          
+
       - name: Check if version changed
         id: check_version
         env:
@@ -32,13 +32,13 @@ jobs:
         run: |
           # Get previous tag version
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
+
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tags found, proceeding with release"
             echo "CHANGED=true" >> $GITHUB_OUTPUT
           else
             PREVIOUS_VERSION=${PREVIOUS_TAG#v}
-            
+
             if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
               echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
               echo "CHANGED=true" >> $GITHUB_OUTPUT
@@ -47,7 +47,7 @@ jobs:
               echo "CHANGED=false" >> $GITHUB_OUTPUT
             fi
           fi
-      
+
       - name: Setup Beam
         uses: erlef/setup-beam@v1
         with:
@@ -93,11 +93,11 @@ jobs:
         run: |
           # Get current date for release
           DATE=$(date +%Y-%m-%d)
-          
+
           # Read the changelog and process it
           awk '
             BEGIN { found_unreleased = 0; }
-            
+
             /^## \[Unreleased\]/ {
               print $0;
               getline line;
@@ -105,18 +105,18 @@ jobs:
                 print line;
                 if (!getline line) break;
               }
-              
+
               # Print version header
               printf "## [%s] - %s\n", ENVIRON["VERSION"], ENVIRON["DATE"];
               found_unreleased = 1;
               next;
             }
-            
+
             /^[A-Z]/ && found_unreleased {
               print "";
               found_unreleased = 0;
             }
-            
+
             { print; }
           ' CHANGELOG.md > temp_changelog && \
           mv temp_changelog CHANGELOG.md
@@ -128,7 +128,7 @@ jobs:
           git config user.email "actions@github.com"
           git add CHANGELOG.md
           git commit -m "Update changelog for version ${{ steps.version.outputs.VERSION }}"
-          
+
       - name: Build and publish package
         if: steps.check_version.outputs.CHANGED == 'true'
         env:
@@ -136,39 +136,40 @@ jobs:
         run: |
           # Ensure we have the latest changes
           git pull --rebase origin main
-          
+
           # Publish to Hex
           mix hex.publish
 
       - name: Create GitHub release
         if: steps.check_version.outputs.CHANGED == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           # Get changelog section for this version
           RELEASE_NOTES=$(awk '
-            BEGIN { 
-              in_section = 0; 
+            BEGIN {
+              in_section = 0;
               buffer = "";
             }
-            
+
             /^## \[$ENVIRON["VERSION"]\]/ {
               in_section = 1;
               next;
             }
-            
+
             /^## \[.*\]/ && in_section {
               # End of our section
               print buffer;
               exit;
             }
-            
+
             in_section {
               if (buffer != "") buffer = buffer "\\n";
               buffer = buffer $0;
             }
           ' CHANGELOG.md)
-          
+
           # Create release tag and notes
           gh release create "v$VERSION" \
             --title "Version $VERSION" \
