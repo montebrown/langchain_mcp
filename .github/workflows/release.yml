@@ -22,7 +22,7 @@ jobs:
       - name: Extract version from mix.exs
         id: version
         run: |
-          VERSION=$(grep '@version' mix.exs | sed 's/.*"\\(.*\\)\".*/\1/')
+          VERSION=$(grep '^\s*@version\s' mix.exs | sed 's/.*"\([^"]*\)".*/\1/')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           
       - name: Check if version changed
@@ -37,7 +37,7 @@ jobs:
             echo "No previous tags found, proceeding with release"
             echo "CHANGED=true" >> $GITHUB_OUTPUT
           else
-            PREVIOUS_VERSION=$(echo "$PREVIOUS_TAG" | sed 's/^v//')
+            PREVIOUS_VERSION=${PREVIOUS_TAG#v}
             
             if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
               echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
