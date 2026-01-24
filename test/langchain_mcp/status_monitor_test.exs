@@ -405,9 +405,11 @@ defmodule LangChain.MCP.StatusMonitorTest do
     end
 
     test "returns already_registered if client was already registered" do
-      # Start and register a process
+      # Start and register a process by name first
       {:ok, pid} = Agent.start_link(fn -> %{} end, name: AlreadyRegisteredModule)
-      StatusMonitor.register_client(:already_reg, pid)
+
+      assert {:ok, :registered} =
+               StatusMonitor.register_client_by_name(AlreadyRegisteredModule, :already_reg)
 
       # Try to register again using module name
       assert {:ok, :already_registered} =
@@ -469,6 +471,77 @@ defmodule LangChain.MCP.StatusMonitorTest do
       Agent.stop(pid1)
       Agent.stop(pid2)
       Agent.stop(pid3)
+    end
+
+    test "stores process name in Registry instead of PID" do
+      {:ok, pid} = Agent.start_link(fn -> %{} end, name: StorageCheckModule)
+
+      assert {:ok, :registered} =
+               StatusMonitor.register_client_by_name(StorageCheckModule, :storage_check)
+
+      # Registry value should contain process_name, not pid
+      [{_reg_pid, value}] = Registry.lookup(:langchain_mcp_clients, :storage_check)
+      assert %{process_name: StorageCheckModule} = value
+      refute Map.has_key?(value, :pid)
+
+      Agent.stop(pid)
+    end
+
+    test "recovers from process restart with same name" do
+      Process.flag(:trap_exit, true)
+
+      # Start a named process and register it
+      {:ok, pid1} = Agent.start_link(fn -> %{} end, name: RestartableModule)
+
+      assert {:ok, :registered} =
+               StatusMonitor.register_client_by_name(RestartableModule, :restartable)
+
+      # Verify status is healthy with original PID
+      assert {:ok, %{pid: ^pid1}} = StatusMonitor.get_client_status(:restartable)
+
+      # Kill the process
+      Process.exit(pid1, :kill)
+      Process.sleep(10)
+
+      # Status should report process_dead while no process is registered under the name
+      assert {:error, {:client_unavailable, :process_dead}} =
+               StatusMonitor.get_client_status(:restartable)
+
+      # Start a new process with the same name (simulating supervisor restart)
+      {:ok, pid2} = Agent.start_link(fn -> %{} end, name: RestartableModule)
+      assert pid1 != pid2
+
+      # Status should now report healthy with the NEW PID
+      assert {:ok, %{pid: ^pid2}} = StatusMonitor.get_client_status(:restartable)
+
+      # Health check should also recover
+      assert {:pong, {:ok, %{pid: ^pid2}}} = StatusMonitor.health_check(:restartable)
+
+      Agent.stop(pid2)
+    end
+
+    test "recovery works with dashboard_status" do
+      Process.flag(:trap_exit, true)
+
+      {:ok, pid1} = Agent.start_link(fn -> %{} end, name: DashboardRecoveryModule)
+
+      assert {:ok, :registered} =
+               StatusMonitor.register_client_by_name(DashboardRecoveryModule, :dashboard_recovery)
+
+      # Kill and restart
+      Process.exit(pid1, :kill)
+      Process.sleep(10)
+
+      {:ok, pid2} = Agent.start_link(fn -> %{} end, name: DashboardRecoveryModule)
+
+      # Dashboard should show healthy with new PID
+      result = StatusMonitor.dashboard_status()
+      client_status = result.clients[:dashboard_recovery]
+      assert client_status.status == :healthy
+      assert client_status.alive? == true
+      assert client_status.pid == pid2
+
+      Agent.stop(pid2)
     end
 
     test "works with LangChain.MCP.Client modules" do
