@@ -156,4 +156,31 @@ defmodule LangChain.MCP.AdapterIntegrationTest do
       assert "nonexistent" in missing
     end
   end
+
+  describe "adapter with PID client" do
+    test "to_functions works with PID client", %{client_pid: client_pid} do
+      # Use the client PID from the MCPCase setup
+      :ok = Adapter.wait_for_server_ready(client_pid)
+
+      # Create adapter with PID instead of module name
+      adapter = Adapter.new(client: client_pid)
+
+      # Discover tools - uses ToolExecutor.list_tools which now supports PIDs
+      {:ok, tools} = Adapter.discover_tools(adapter)
+
+      assert is_list(tools)
+      assert length(tools) > 0
+
+      # Convert to LangChain functions
+      functions = Adapter.to_functions(adapter)
+
+      assert is_list(functions)
+      assert length(functions) > 0
+
+      func = hd(functions)
+      assert %Function{} = func
+      assert is_binary(func.name)
+      assert is_function(func.function, 2)
+    end
+  end
 end

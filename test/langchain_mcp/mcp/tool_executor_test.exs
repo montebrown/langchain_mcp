@@ -1,7 +1,7 @@
 defmodule LangChain.MCP.ToolExecutorTest do
   use ExUnit.Case, async: true
 
-  alias LangChain.MCP.{Config, ToolExecutor}
+  alias LangChain.MCP.{Adapter, Config, ToolExecutor}
 
   defmodule MockClient do
     @moduledoc "Mock MCP client for testing"
@@ -318,6 +318,65 @@ defmodule LangChain.MCP.ToolExecutorTest do
       {:error, reason} = ToolExecutor.list_tools(ErrorTypesListClient)
 
       assert is_binary(reason)
+    end
+  end
+
+  describe "list_tools/1 with PID" do
+    @tag :live_call
+    test "lists tools from a client started by PID" do
+      # Start a real client, get its PID
+      {:ok, client_pid} =
+        LangChainMCP.TestClient.start_link(
+          transport: {:streamable_http, base_url: "http://localhost:5000"}
+        )
+
+      :ok = Adapter.wait_for_server_ready(client_pid)
+
+      {:ok, tools} = ToolExecutor.list_tools(client_pid)
+
+      assert is_list(tools)
+      # Test server provides get_current_time, get_timestamp, add_numbers
+      assert Enum.any?(tools, &(&1["name"] == "get_current_time"))
+
+      Supervisor.stop(client_pid)
+    end
+  end
+
+  describe "execute_on_client/5 with PID" do
+    @tag :live_call
+    test "dispatches tool call via PID to base client" do
+      {:ok, client_pid} =
+        LangChainMCP.TestClient.start_link(
+          transport: {:streamable_http, base_url: "http://localhost:5000"}
+        )
+
+      :ok = Adapter.wait_for_server_ready(client_pid)
+
+      # This test verifies the PID dispatch works correctly.
+      # We're testing that the call is properly routed through Anubis.Client.Base,
+      # not the server's response (which may vary based on server state).
+      result =
+        ToolExecutor.execute_on_client(
+          client_pid,
+          "get_timestamp",
+          %{},
+          5_000,
+          %{}
+        )
+
+      # The call should either succeed or fail with an MCP error (not a dispatch error)
+      case result do
+        {:ok, response} ->
+          # If successful, verify we got a valid response
+          assert is_binary(response) or is_list(response)
+
+        {:error, msg} ->
+          # If error, it should be an MCP error, not "attempted to apply a function on PID"
+          refute String.contains?(msg, "attempted to apply")
+          refute String.contains?(msg, "Modules (the first argument of apply)")
+      end
+
+      Supervisor.stop(client_pid)
     end
   end
 end
