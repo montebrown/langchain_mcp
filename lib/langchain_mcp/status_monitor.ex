@@ -83,6 +83,15 @@ defmodule LangChain.MCP.StatusMonitor do
   """
   def get_client_status(name) when is_atom(name) do
     case Registry.lookup(@registry_name, name) do
+      [{_pid, %{process_name: process_name}}] ->
+        case Process.whereis(process_name) do
+          pid when is_pid(pid) ->
+            {:ok, %{pid: pid}}
+
+          nil ->
+            {:error, {:client_unavailable, :process_dead}}
+        end
+
       [{_pid, %{pid: client_pid}}] ->
         if Process.alive?(client_pid) do
           {:ok, %{pid: client_pid}}
@@ -125,6 +134,17 @@ defmodule LangChain.MCP.StatusMonitor do
   """
   def health_check(name) when is_atom(name) do
     case Registry.lookup(@registry_name, name) do
+      [{_pid, %{process_name: process_name}}] ->
+        ping_result =
+          case Process.whereis(process_name) do
+            pid when is_pid(pid) -> :pong
+            nil -> {:error, :process_dead}
+          end
+
+        status_result = get_client_status(name)
+
+        {ping_result, status_result}
+
       [{_pid, %{pid: client_pid}}] ->
         ping_result =
           if Process.alive?(client_pid) do
@@ -282,7 +302,16 @@ defmodule LangChain.MCP.StatusMonitor do
   defp wait_and_register(module, registry_name, deadline) do
     case Process.whereis(module) do
       pid when is_pid(pid) ->
-        register_client(registry_name, pid)
+        # Store the process name for dynamic resolution, not the PID
+        case Registry.register(@registry_name, registry_name, %{process_name: module}) do
+          {:ok, _pid} ->
+            Logger.info("Registered MCP client #{registry_name} (#{module}) for status monitoring")
+            {:ok, :registered}
+
+          {:error, {:already_registered, _}} ->
+            Logger.debug("MCP client #{registry_name} already registered")
+            {:ok, :already_registered}
+        end
 
       nil ->
         if System.monotonic_time(:millisecond) < deadline do
