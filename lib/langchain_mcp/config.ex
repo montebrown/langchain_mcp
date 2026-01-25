@@ -55,12 +55,15 @@ defmodule LangChain.MCP.Config do
     field(:context, :map, virtual: true, default: %{})
   end
 
+  @typedoc "A client reference that can be a module, PID, or GenServer-compatible name"
+  @type client_ref :: module() | pid() | GenServer.server()
+
   @type t :: %__MODULE__{
-          client: module(),
+          client: client_ref(),
           cache_tools: boolean(),
           timeout: pos_integer(),
           async: boolean(),
-          fallback_client: module() | nil,
+          fallback_client: client_ref() | nil,
           before_fallback: function() | nil,
           tool_filter: function() | nil,
           context: map()
@@ -71,14 +74,22 @@ defmodule LangChain.MCP.Config do
 
   ## Options
 
-    * `:client` - Required. The Anubis.Client module
+    * `:client` - Required. The Anubis.Client module, PID, or via tuple
     * `:cache_tools` - Boolean, default true
     * `:timeout` - Positive integer in ms, default 30_000
     * `:async` - Boolean, default false
-    * `:fallback_client` - Optional module
+    * `:fallback_client` - Optional module, PID, or via tuple
     * `:before_fallback` - Optional 3-arity function
     * `:tool_filter` - Optional 1-arity function
     * `:context` - Optional map
+
+  ## Client Types
+
+  The `:client` and `:fallback_client` options accept:
+    * Module name (atom) - e.g., `MyApp.MCPClient`
+    * PID - e.g., a dynamically started client
+    * Via tuple - e.g., `{:via, Registry, {MyRegistry, "key"}}`
+    * Global tuple - e.g., `{:global, :my_client}`
 
   ## Examples
 
@@ -116,6 +127,7 @@ defmodule LangChain.MCP.Config do
     |> validate_number(:timeout, greater_than: 0)
     |> put_virtual_fields(attrs)
     |> validate_client()
+    |> validate_fallback_client()
     |> validate_callbacks()
   end
 
@@ -146,8 +158,59 @@ defmodule LangChain.MCP.Config do
           add_error(changeset, :client, "module does not exist")
         end
 
+      client when is_pid(client) ->
+        # Check if PID is alive
+        if Process.alive?(client) do
+          changeset
+        else
+          add_error(changeset, :client, "PID is not alive")
+        end
+
+      {:via, module, _term} when is_atom(module) ->
+        # Accept via tuples with structure validation only
+        changeset
+
+      {:global, _name} ->
+        # Accept global tuples
+        changeset
+
       _ ->
         add_error(changeset, :client, "must be a module name (atom)")
+    end
+  end
+
+  defp validate_fallback_client(changeset) do
+    case get_field(changeset, :fallback_client) do
+      nil ->
+        # Fallback client is optional
+        changeset
+
+      client when is_atom(client) ->
+        # Check if module exists
+        if Code.ensure_loaded?(client) do
+          changeset
+        else
+          add_error(changeset, :fallback_client, "module does not exist")
+        end
+
+      client when is_pid(client) ->
+        # Check if PID is alive
+        if Process.alive?(client) do
+          changeset
+        else
+          add_error(changeset, :fallback_client, "PID is not alive")
+        end
+
+      {:via, module, _term} when is_atom(module) ->
+        # Accept via tuples with structure validation only
+        changeset
+
+      {:global, _name} ->
+        # Accept global tuples
+        changeset
+
+      _ ->
+        add_error(changeset, :fallback_client, "must be a module name (atom)")
     end
   end
 

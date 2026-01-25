@@ -108,13 +108,19 @@ defmodule LangChain.MCP.ToolExecutor do
     * `{:ok, result}` - Success
     * `{:error, reason}` - Failure
   """
-  @spec execute_on_client(module(), String.t(), map(), pos_integer(), map()) ::
+  @spec execute_on_client(
+          module() | pid() | GenServer.server(),
+          String.t(),
+          map(),
+          pos_integer(),
+          map()
+        ) ::
           {:ok, execution_result()} | {:error, String.t()}
   def execute_on_client(client, tool_name, args, timeout \\ 30_000, context \\ %{}) do
     opts = build_call_opts(timeout)
 
-    # Call the MCP tool via Anubis.Client
-    case client.call_tool(tool_name, args, opts) do
+    # Call the MCP tool via Anubis.Client, dispatching based on client type
+    case call_tool(client, tool_name, args, opts) do
       {:ok, response} ->
         handle_response(response, tool_name, context)
 
@@ -126,6 +132,63 @@ defmodule LangChain.MCP.ToolExecutor do
     error ->
       Logger.error("Exception during MCP tool execution: #{inspect(error)}")
       {:error, "Tool execution exception: #{Exception.message(error)}"}
+  end
+
+  # Dispatch call_tool based on client type
+  defp call_tool(client, tool_name, args, opts) when is_atom(client) do
+    client.call_tool(tool_name, args, opts)
+  end
+
+  defp call_tool(client, tool_name, args, opts) do
+    # For PIDs and via tuples, resolve the base client and use Anubis.Client.Base
+    case resolve_base_client(client) do
+      {:ok, base_client} ->
+        Anubis.Client.Base.call_tool(base_client, tool_name, args, opts)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # Resolve the actual Anubis.Client.Base process from a supervisor PID or via tuple
+  defp resolve_base_client(client) when is_pid(client) do
+    # Check if this is a supervisor by looking for children
+    case get_base_client_pid(client) do
+      {:ok, base_pid} -> {:ok, base_pid}
+      {:error, _} -> {:ok, client}
+    end
+  end
+
+  defp resolve_base_client({:via, _, _} = via_tuple) do
+    # For via tuples, try to resolve to a PID and then get base client
+    case GenServer.whereis(via_tuple) do
+      nil -> {:error, "Process not found for via tuple"}
+      pid -> resolve_base_client(pid)
+    end
+  end
+
+  defp resolve_base_client({:global, _} = global_tuple) do
+    case GenServer.whereis(global_tuple) do
+      nil -> {:error, "Process not found for global tuple"}
+      pid -> resolve_base_client(pid)
+    end
+  end
+
+  # Get the Anubis.Client.Base PID from a supervisor
+  defp get_base_client_pid(supervisor_pid) do
+    children = Supervisor.which_children(supervisor_pid)
+
+    case Enum.find(children, fn {id, _pid, _type, _modules} ->
+           id == Anubis.Client.Base
+         end) do
+      {_id, base_pid, _type, _modules} when is_pid(base_pid) ->
+        {:ok, base_pid}
+
+      nil ->
+        {:error, :not_a_supervisor}
+    end
+  catch
+    :exit, _ -> {:error, :not_a_supervisor}
   end
 
   # Handle successful MCP response
@@ -292,15 +355,19 @@ defmodule LangChain.MCP.ToolExecutor do
       iex> is_list(tools)
       true
   """
-  @spec list_tools(module()) :: {:ok, [map()]} | {:error, String.t()}
+  @spec list_tools(module() | pid() | GenServer.server()) :: {:ok, [map()]} | {:error, String.t()}
   def list_tools(client) do
     list_tools_with_retry(client, 3, 50)
   end
 
-  @spec list_tools_with_retry(module(), non_neg_integer(), non_neg_integer()) ::
+  @spec list_tools_with_retry(
+          module() | pid() | GenServer.server(),
+          non_neg_integer(),
+          non_neg_integer()
+        ) ::
           {:ok, [map()]} | {:error, String.t()}
   defp list_tools_with_retry(client, retries_left, delay_ms) when retries_left > 0 do
-    case client.list_tools() do
+    case do_list_tools(client) do
       {:ok, response} ->
         tools = response.result["tools"] || []
         {:ok, tools}
@@ -326,5 +393,21 @@ defmodule LangChain.MCP.ToolExecutor do
 
   defp list_tools_with_retry(_client, 0, _delay_ms) do
     {:error, "Failed to list tools after retries"}
+  end
+
+  # Dispatch list_tools based on client type
+  defp do_list_tools(client) when is_atom(client) do
+    client.list_tools()
+  end
+
+  defp do_list_tools(client) do
+    # For PIDs and via tuples, resolve the base client and use Anubis.Client.Base
+    case resolve_base_client(client) do
+      {:ok, base_client} ->
+        Anubis.Client.Base.list_tools(base_client)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

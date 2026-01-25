@@ -102,6 +102,74 @@ adapter = Adapter.new(
 )
 ```
 
+### Client Types
+
+The `client` and `fallback_client` options accept multiple reference types:
+
+```elixir
+# Module name (most common - for supervision tree clients)
+adapter = Adapter.new(client: MyApp.MCPClient)
+
+# PID (for dynamically started clients)
+{:ok, client_pid} = MyApp.MCPClient.start_link(transport: {:streamable_http, base_url: url})
+adapter = Adapter.new(client: client_pid)
+
+# Via tuple (for Registry-based lookups)
+adapter = Adapter.new(client: {:via, Registry, {MyApp.Registry, "mcp_client"}})
+
+# Global tuple
+adapter = Adapter.new(client: {:global, :my_mcp_client})
+```
+
+## Dynamic Clients
+
+For scenarios where you need per-request or per-job MCP clients (e.g., browser automation with Playwright), you can start clients dynamically and pass the PID to the adapter.
+
+### Per-Job Pattern
+
+```elixir
+defmodule MyApp.BrowserJob do
+  alias LangChain.MCP.Adapter
+
+  def run_with_browser(task) do
+    # Start a dedicated MCP client for this job
+    {:ok, client_pid} = MyApp.PlaywrightMCP.start_link(
+      transport: {:streamable_http, base_url: "http://localhost:3000"}
+    )
+
+    # Wait for the client to be ready
+    :ok = Adapter.wait_for_server_ready(client_pid)
+
+    try do
+      # Create adapter with the dynamic client
+      adapter = Adapter.new(client: client_pid)
+      functions = Adapter.to_functions(adapter)
+
+      # Use in your chain
+      {:ok, result} = run_chain_with_tools(task, functions)
+      result
+    after
+      # Clean up when done
+      Supervisor.stop(client_pid)
+    end
+  end
+end
+```
+
+### With Fallback
+
+Dynamic clients also work with fallback support:
+
+```elixir
+{:ok, primary_pid} = MyApp.PrimaryMCP.start_link(opts)
+{:ok, fallback_pid} = MyApp.BackupMCP.start_link(opts)
+
+adapter = Adapter.new(
+  client: primary_pid,
+  fallback_client: fallback_pid
+)
+```
+
 ### Selective Tool Discovery
 
 ```elixir

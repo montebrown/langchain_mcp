@@ -165,4 +165,83 @@ defmodule LangChain.MCP.ConfigTest do
       assert result == :continue
     end
   end
+
+  describe "new!/1 with PID client" do
+    test "accepts a PID as client" do
+      # Spawn a dummy process to get a valid PID
+      pid = spawn(fn -> Process.sleep(:infinity) end)
+
+      config = Config.new!(client: pid)
+
+      assert config.client == pid
+
+      Process.exit(pid, :kill)
+    end
+
+    test "rejects dead PID" do
+      pid = spawn(fn -> :ok end)
+      # Let it die
+      Process.sleep(10)
+
+      assert_raise ArgumentError, ~r/not alive/, fn ->
+        Config.new!(client: pid)
+      end
+    end
+  end
+
+  describe "new!/1 with via tuple client" do
+    test "accepts {:via, Registry, {name, key}}" do
+      config = Config.new!(client: {:via, Registry, {MyRegistry, "key"}})
+
+      assert config.client == {:via, Registry, {MyRegistry, "key"}}
+    end
+
+    test "accepts {:global, name}" do
+      config = Config.new!(client: {:global, :my_client})
+
+      assert config.client == {:global, :my_client}
+    end
+  end
+
+  describe "new!/1 with PID fallback_client" do
+    test "accepts a PID as fallback_client" do
+      primary_pid = spawn(fn -> Process.sleep(:infinity) end)
+      fallback_pid = spawn(fn -> Process.sleep(:infinity) end)
+
+      config = Config.new!(client: primary_pid, fallback_client: fallback_pid)
+
+      assert config.client == primary_pid
+      assert config.fallback_client == fallback_pid
+
+      Process.exit(primary_pid, :kill)
+      Process.exit(fallback_pid, :kill)
+    end
+
+    test "accepts via tuple as fallback_client" do
+      primary_pid = spawn(fn -> Process.sleep(:infinity) end)
+
+      config =
+        Config.new!(
+          client: primary_pid,
+          fallback_client: {:via, Registry, {MyRegistry, "fallback"}}
+        )
+
+      assert config.fallback_client == {:via, Registry, {MyRegistry, "fallback"}}
+
+      Process.exit(primary_pid, :kill)
+    end
+
+    test "rejects dead PID as fallback_client" do
+      primary_pid = spawn(fn -> Process.sleep(:infinity) end)
+      fallback_pid = spawn(fn -> :ok end)
+      # Let it die
+      Process.sleep(10)
+
+      assert_raise ArgumentError, ~r/not alive/, fn ->
+        Config.new!(client: primary_pid, fallback_client: fallback_pid)
+      end
+
+      Process.exit(primary_pid, :kill)
+    end
+  end
 end
