@@ -40,7 +40,7 @@ defmodule LangChainMCP.MixProject do
     [
       # Core dependencies
       {:langchain, "~> 0.4.0"},
-      {:anubis_mcp, "~> 0.16.0"},
+      {:anubis_mcp, github: "montebrown/anubis-mcp", branch: "fix/sse-reconnect-reset-v0.16.0"},
 
       # HTTP server for test server
       {:plug, "~> 1.15", optional: true},
